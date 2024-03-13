@@ -496,7 +496,7 @@ namespace UAssetGUI
         {
             try
             {
-                var info = new ProcessStartInfo("graphviz/dot.exe");
+                var info = new ProcessStartInfo("dot.exe");
                 info.Arguments = "-Tplain -y";
                 info.UseShellExecute = false;
                 info.CreateNoWindow = true;
@@ -514,7 +514,7 @@ namespace UAssetGUI
                 {
                     var inputs = String.Join(" | ", entry.Key.GetInputs().Select(p => $"<{p.Name}>{p.Name}"));
                     var outputs = String.Join(" | ", entry.Key.GetOutputs().Select(p => $"<{p.Name}>{p.Name}"));
-                    dot.WriteLine($"{entry.Value} [shape=\"record\", width=4, label=\"{{{{ {{{entry.Key.Name}}} | {{ {{ {inputs} }} | {{ {outputs} }} }} | footer }}}}\"]");
+                    dot.WriteLine($"{entry.Value} [shape=\"record\", width={entry.Key.GetNodeBounds().Width*4/NodeVisual.NodeWidth}, label=\"{{{{ {{{entry.Key.Name}}} | {{ {{ {inputs} }} | {{ {outputs} }} }} | footer }}}}\"]");
                     if (entry.Key.NodeColor == System.Drawing.Color.Salmon) // TODO possibly worst way to detect special nodes ever
                     {
                         functionNodes.Add(entry.Value);
@@ -538,7 +538,7 @@ namespace UAssetGUI
                 dot.Close();
 
                 var scaleX = 50.0f;
-                var scaleY = 80.0f;
+                var scaleY = 60.0f;
                 string line;
                 while ((line = p.StandardOutput.ReadLine()) != null)
                 {

@@ -216,7 +216,7 @@ namespace UAssetGUI
                             string functionName = UAssetAPI.Kismet.KismetSerializer.GetName(e.StackNode.Index);
 
                             if (functionName == "Delay"){
-                                jump("delayed", ((EX_SkipOffsetConst)((EX_StructConst)e.Parameters[2]).Value[0]).Value);
+                                jump("later", ((EX_SkipOffsetConst)((EX_StructConst)e.Parameters[2]).Value[0]).Value);
                             }
                             node.Name = $"{index}: CallMath - " + UAssetAPI.Kismet.KismetSerializer.GetName(e.StackNode.Index);
                             break;
@@ -394,6 +394,9 @@ namespace UAssetGUI
                     case EX_Int64Const e:
                         node.Name = "Int64\n\n" + e.Value;
                         break;
+                    case EX_VectorConst:
+                        node.Name = "Vector";
+                        break;
                     case EX_CallMath e:
                         node.Name = "CallMath: " + UAssetAPI.Kismet.KismetSerializer.GetName(e.StackNode.Index);
                         break;
@@ -564,6 +567,11 @@ namespace UAssetGUI
                         }
                     case EX_StructMemberContext e:
                         exp("struct", e.StructExpression);
+                        break;
+                    case EX_VectorConst e:
+                        exp("x", new EX_FloatConst() {Value = e.Value.XFloat});
+                        exp("y", new EX_FloatConst() {Value = e.Value.YFloat});
+                        exp("z", new EX_FloatConst() {Value = e.Value.ZFloat});
                         break;
                     default:
                         Console.WriteLine($"unimplemented {ex}");

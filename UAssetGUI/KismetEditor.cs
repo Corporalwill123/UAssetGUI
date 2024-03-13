@@ -128,52 +128,61 @@ namespace UAssetGUI
                 switch (ex)
                 {
                     case EX_EndOfScript:
+                        node.Name = $"{index}: End of Script";
                         break;
                     case EX_Return:
-                    case EX_PopExecutionFlow:
-                    case EX_ComputedJump:
+                        node.Name = $"{index}: Return";
                         exec();
                         break;
                     case EX_ComputedJump e:
                         exec();
                         input("offset", e.CodeOffsetExpression);
+                        node.Name = $"{index}: Computed Jump";
                         break;
                     case EX_Jump e:
                         exec();
                         jump("then", e.CodeOffset);
+                        node.Name = $"{index}: Jump";
                         break;
                     case EX_JumpIfNot e:
                         exec();
                         then("true");
                         jump("false", e.CodeOffset);
                         input("condition", e.BooleanExpression);
+                        node.Name = $"{index}: Branch";
                         break;
                     case EX_PushExecutionFlow e:
                         exec();
                         then("first");
                         jump("then", e.PushingAddress);
+                        node.Name = $"{index}: Push Execution";
                         break;
                     case EX_PopExecutionFlow:
                         exec();
+                        node.Name = $"{index}: Pop Execution";
                         break;
                     case EX_PopExecutionFlowIfNot e:
                         exec(); then();
                         input("condition", e.BooleanExpression);
+                        node.Name = $"{index}: Pop Execution If False";
                         break;
                     case EX_LetObj e:
                         exec(); then();
                         input("variable", e.VariableExpression);
                         input("value", e.AssignmentExpression);
+                        node.Name = $"{index}: Set Obj";
                         break;
                     case EX_Let e:
                         exec(); then();
                         input("variable", e.Variable);
                         input("value", e.Expression);
+                        node.Name = $"{index}: Set Value";
                         break;
                     case EX_LetBool e:
                         exec(); then();
                         input("variable", e.VariableExpression);
                         input("value", e.AssignmentExpression);
+                        node.Name = $"{index}: Set Bool";
                         break;
                     case EX_SetArray e:
                         {
@@ -185,12 +194,14 @@ namespace UAssetGUI
                                 input($"element {i}", element);
                                 i++;
                             }
+                            node.Name = $"{index}: Set Array";
                             break;
                         }
                     case EX_Context e:
                         exec(); then();
                         input("object", e.ObjectExpression);
                         input("member", e.ContextExpression);
+                        node.Name = $"{index}: Context";
                         break;
                     case EX_CallMath e:
                         {
@@ -206,6 +217,7 @@ namespace UAssetGUI
                             if (functionName == "Delay"){
                                 jump("delayed", ((EX_SkipOffsetConst)((EX_StructConst)e.Parameters[2]).Value[0]).Value);
                             }
+                            node.Name = $"{index}: CallMath - " + UAssetAPI.Kismet.KismetSerializer.GetName(e.StackNode.Index);
                             break;
                         }
                     case EX_LocalFinalFunction e:
@@ -217,6 +229,7 @@ namespace UAssetGUI
                                 input($"arg_{i}", param);
                                 i++;
                             }
+                            node.Name = $"{index}: LocalFinalFunction - " + UAssetAPI.Kismet.KismetSerializer.GetName(e.StackNode.Index);
                             break;
                         }
                     case EX_FinalFunction e:
@@ -228,6 +241,7 @@ namespace UAssetGUI
                                 input($"arg_{i}", param);
                                 i++;
                             }
+                            node.Name = $"{index}: FinalFunction - " + UAssetAPI.Kismet.KismetSerializer.GetName(e.StackNode.Index);
                             break;
                         }
                     case EX_VirtualFunction e:
@@ -239,18 +253,21 @@ namespace UAssetGUI
                                 input($"arg_{i}", param);
                                 i++;
                             }
+                            node.Name = $"{index}: VirtualFunction - " + e.VirtualFunctionName.ToString();
                             break;
                         }
                     case EX_LetValueOnPersistentFrame e:
                         {
                             exec(); then();
                             String fullName = UAssetAPI.Kismet.KismetSerializer.SerializePropertyPointer(e.DestinationProperty, new[] { "Property Name" })[0].Value.ToString();
+                            node.Name = $"{index}: LetValueOnPersistentFrame - " + fullName.Substring(fullName.LastIndexOf('.') + 1);
                             input("value", e.AssignmentExpression);
                             break;
                         }
                     case EX_AddMulticastDelegate e:
                         {
                             exec(); then();
+                            node.Name = $"{index}: Add MulticastDelegate";
                             input("MulticastDelegate", e.Delegate);
                             input("Delegate", e.DelegateToAdd);
                             break;
@@ -258,6 +275,7 @@ namespace UAssetGUI
                     case EX_RemoveMulticastDelegate e:
                         {
                             exec(); then();
+                            node.Name = $"{index}: Remove MulticastDelegate";
                             input("MulticastDelegate", e.Delegate);
                             input("Delegate", e.DelegateToAdd);
                             break;
@@ -265,12 +283,14 @@ namespace UAssetGUI
                     case EX_ClearMulticastDelegate e:
                         {
                             exec(); then();
+                            node.Name = $"{index}: Clear MulticastDelegate";
                             input("MulticastDelegate", e.DelegateToClear);
                             break;
                         }
                     case EX_BindDelegate e:
                         {
                             exec(); then();
+                            node.Name = $"{index}: Bind Delegate: " + e.FunctionName.ToString();
                             input("Delegate", e.Delegate);
                             input("Object", e.ObjectTerm);
                             break;
@@ -301,6 +321,129 @@ namespace UAssetGUI
                     ExecInit = false,
                     Name = type.Name,
                 };
+
+                switch (ex)
+                {
+                    case EX_Self:
+                        node.Name = "Self";
+                        break;
+                    case EX_LocalVariable e:
+                        {
+                            String fullName = UAssetAPI.Kismet.KismetSerializer.SerializePropertyPointer(e.Variable, new[] { "Variable Name" })[0].Value.ToString();
+                            node.Name = "LocalVariable\n\n" + fullName.Substring(fullName.LastIndexOf('.') + 1);
+                            break;
+                        }
+                    case EX_LocalOutVariable e:
+                        {
+                            String fullName = UAssetAPI.Kismet.KismetSerializer.SerializePropertyPointer(e.Variable, new[] { "Variable Name" })[0].Value.ToString();
+                            node.Name = "LocalOut\n\n" + fullName.Substring(fullName.LastIndexOf('.') + 1);
+                            break;
+                        }
+                    case EX_InstanceVariable e:
+                        {
+                            String fullName = UAssetAPI.Kismet.KismetSerializer.SerializePropertyPointer(e.Variable, new[] { "Variable Name" })[0].Value.ToString();
+                            node.Name = "InstanceVariable\n\n" + fullName.Substring(fullName.LastIndexOf('.') + 1);
+                            break;
+                        }
+                    //case EX_ComputedJump:
+                    //case EX_NoObject:
+                    //case EX_IntOne:
+                    //case EX_IntZero:
+                    case EX_SwitchValue:
+                        node.Name = "Switch";
+                        break;
+                    case EX_IntConst e:
+                        node.Name = "Int\n\n" + e.Value.ToString();
+                        break;
+                    case EX_NameConst e:
+                        node.Name = "Name\n\n" + e.Value.ToString();
+                        break;
+                    case EX_True:
+                        node.Name = "Bool\n\nTrue";
+                        break;
+                    case EX_False:
+                        node.Name = "Bool\n\nFalse";
+                        break;
+                    case EX_ByteConst e:
+                        node.Name = "Byte\n\n" + e.Value.ToString();
+                        break;
+                    case EX_SkipOffsetConst e:
+                        node.Name = "Skip Offset\n\n" + e.Value.ToString();
+                        break;
+                    case EX_NoObject:
+                        node.Name = "Null Reference";
+                        break;
+                    //case EX_Nothing:
+                    case EX_ObjectConst e:
+                        node.Name = "Object\n\n" + UAssetAPI.Kismet.KismetSerializer.GetFullName(e.Value.Index);
+                        break;
+                    case EX_FloatConst e:
+                        node.Name = "Float\n\n" + e.Value.ToString();
+                        break;
+                    case EX_StringConst e:
+                        node.Name = "String\n\n" + e.Value;
+                        break;
+                    case EX_UnicodeStringConst e:
+                        node.Name = "UniString\n\n" + e.Value;
+                        break;
+                    case EX_UInt64Const e:
+                        node.Name = "UInt64\n\n" + e.Value;
+                        break;
+                    case EX_Int64Const e:
+                        node.Name = "Int64\n\n" + e.Value;
+                        break;
+                    case EX_CallMath e:
+                        node.Name = "CallMath: " + UAssetAPI.Kismet.KismetSerializer.GetName(e.StackNode.Index);
+                        break;
+                    case EX_LocalFinalFunction e:
+                        node.Name = "LocFinalFunc: " + UAssetAPI.Kismet.KismetSerializer.GetName(e.StackNode.Index);
+                        break;
+                    case EX_FinalFunction e:
+                        node.Name = "FinalFunc: " + UAssetAPI.Kismet.KismetSerializer.GetName(e.StackNode.Index);
+                        break;
+                    case EX_VirtualFunction e:
+                        node.Name = "VirtualFunc: " + e.VirtualFunctionName.ToString();
+                        break;
+                    case EX_Context e:
+                        node.Name = "Context";
+                        break;
+                    case EX_StructConst e:
+                        node.Name = "Struct";
+                        break;
+                    case EX_StructMemberContext e:
+                        {
+                            String fullName = UAssetAPI.Kismet.KismetSerializer.SerializePropertyPointer(e.StructMemberExpression, new[] { "Property Name" })[0].Value.ToString();
+                            node.Name = "Struct Member: " + fullName.Substring(fullName.LastIndexOf('.') + 1);
+                            break;
+                        }
+                    case EX_PrimitiveCast e:
+                        {
+                            switch (e.ConversionType)
+                            {
+                                case ECastToken.InterfaceToBool:
+                                    node.Name = "Primitive Cast: Interface To Bool";
+                                    break;
+                                case ECastToken.ObjectToBool:
+                                    node.Name = "Primitive Cast: Object To Bool";
+                                    break;
+                                case ECastToken.ObjectToInterface:
+                                    node.Name = "Primitive Cast: Object To Interface";
+                                    break;
+                                default:
+                                    node.Name = "EX_PrimitiveCast: Unknown";
+                                    break;
+                            }
+                            break;
+                        }
+                    case EX_DynamicCast e:
+                        node.Name = "Dynamic Cast to " + UAssetAPI.Kismet.KismetSerializer.GetName(e.ClassPtr.Index);
+                        break;
+                    //case EX_InterfaceContext e:
+                    default:
+                        //node.Name = "Default:" + node.Name;
+                        break;
+                }
+
 
                 type.Parameters.Add(PinOutValue);
 

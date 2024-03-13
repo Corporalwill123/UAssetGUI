@@ -134,20 +134,27 @@ namespace UAssetGUI
                     case EX_ComputedJump:
                         exec();
                         break;
+                    case EX_ComputedJump e:
+                        exec();
+                        input("offset", e.CodeOffsetExpression);
+                        break;
                     case EX_Jump e:
                         exec();
                         jump("then", e.CodeOffset);
                         break;
                     case EX_JumpIfNot e:
                         exec();
-                        jump("else", e.CodeOffset);
-                        then();
+                        then("true");
+                        jump("false", e.CodeOffset);
                         input("condition", e.BooleanExpression);
                         break;
                     case EX_PushExecutionFlow e:
                         exec();
                         then("first");
                         jump("then", e.PushingAddress);
+                        break;
+                    case EX_PopExecutionFlow:
+                        exec();
                         break;
                     case EX_PopExecutionFlowIfNot e:
                         exec(); then();
@@ -163,6 +170,112 @@ namespace UAssetGUI
                         input("variable", e.Variable);
                         input("value", e.Expression);
                         break;
+                    case EX_LetBool e:
+                        exec(); then();
+                        input("variable", e.VariableExpression);
+                        input("value", e.AssignmentExpression);
+                        break;
+                    case EX_SetArray e:
+                        {
+                            int i = 0;
+                            exec(); then();
+                            input("variable", e.AssigningProperty);
+                            foreach (var element in e.Elements)
+                            {
+                                input($"element {i}", element);
+                                i++;
+                            }
+                            break;
+                        }
+                    case EX_Context e:
+                        exec(); then();
+                        input("object", e.ObjectExpression);
+                        input("member", e.ContextExpression);
+                        break;
+                    case EX_CallMath e:
+                        {
+                            exec(); then();
+                            int i = 1;
+                            foreach (var param in e.Parameters)
+                            {
+                                input($"arg_{i}", param);
+                                i++;
+                            }
+                            string functionName = UAssetAPI.Kismet.KismetSerializer.GetName(e.StackNode.Index);
+
+                            if (functionName == "Delay"){
+                                jump("delayed", ((EX_SkipOffsetConst)((EX_StructConst)e.Parameters[2]).Value[0]).Value);
+                            }
+                            break;
+                        }
+                    case EX_LocalFinalFunction e:
+                        {
+                            exec(); then();
+                            int i = 1;
+                            foreach (var param in e.Parameters)
+                            {
+                                input($"arg_{i}", param);
+                                i++;
+                            }
+                            break;
+                        }
+                    case EX_FinalFunction e:
+                        {
+                            exec(); then();
+                            int i = 1;
+                            foreach (var param in e.Parameters)
+                            {
+                                input($"arg_{i}", param);
+                                i++;
+                            }
+                            break;
+                        }
+                    case EX_VirtualFunction e:
+                        {
+                            exec(); then();
+                            int i = 1;
+                            foreach (var param in e.Parameters)
+                            {
+                                input($"arg_{i}", param);
+                                i++;
+                            }
+                            break;
+                        }
+                    case EX_LetValueOnPersistentFrame e:
+                        {
+                            exec(); then();
+                            String fullName = UAssetAPI.Kismet.KismetSerializer.SerializePropertyPointer(e.DestinationProperty, new[] { "Property Name" })[0].Value.ToString();
+                            input("value", e.AssignmentExpression);
+                            break;
+                        }
+                    case EX_AddMulticastDelegate e:
+                        {
+                            exec(); then();
+                            input("MulticastDelegate", e.Delegate);
+                            input("Delegate", e.DelegateToAdd);
+                            break;
+                        }
+                    case EX_RemoveMulticastDelegate e:
+                        {
+                            exec(); then();
+                            input("MulticastDelegate", e.Delegate);
+                            input("Delegate", e.DelegateToAdd);
+                            break;
+                        }
+                    case EX_ClearMulticastDelegate e:
+                        {
+                            exec(); then();
+                            input("MulticastDelegate", e.DelegateToClear);
+                            break;
+                        }
+                    case EX_BindDelegate e:
+                        {
+                            exec(); then();
+                            input("Delegate", e.Delegate);
+                            input("Object", e.ObjectTerm);
+                            break;
+                        }
+
                     default:
                         exec(); then();
                         break;
@@ -263,8 +376,8 @@ namespace UAssetGUI
                         }
                     case EX_Context e:
                         {
-                            exp("context", e.ContextExpression);
                             exp("object", e.ObjectExpression);
+                            exp("member", e.ContextExpression);
                             break;
                         }
                     case EX_InterfaceContext e:
@@ -272,6 +385,41 @@ namespace UAssetGUI
                             exp("interface", e.InterfaceValue);
                             break;
                         }
+                    case EX_SwitchValue e:
+                        {
+                            int i = 1;
+                            foreach (var Case in e.Cases)
+                            {
+                                exp($"case_{i}_value", Case.CaseIndexValueTerm);
+                                exp($"case_{i}_result", Case.CaseTerm);
+                                i++;
+                            }
+                            exp("index", e.IndexTerm);
+                        }
+                        break;
+                    case EX_StructConst e:
+                        {
+                            int index = 1;
+                            foreach (var property in e.Value)
+                            {
+                                exp($"property {index}", property);
+                                index++;
+                            }
+                            break;
+                        }
+                    case EX_PrimitiveCast e:
+                        {
+                            exp("expression", e.Target);
+                            break;
+                        }
+                    case EX_DynamicCast e:
+                        {
+                            exp("expression", e.TargetExpression);
+                            break;
+                        }
+                    case EX_StructMemberContext e:
+                        exp("struct", e.StructExpression);
+                        break;
                     default:
                         Console.WriteLine($"unimplemented {ex}");
                         break;

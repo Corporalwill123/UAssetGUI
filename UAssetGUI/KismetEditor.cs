@@ -298,6 +298,7 @@ namespace UAssetGUI
 
                     default:
                         exec(); then();
+                        node.NodeColor = System.Drawing.Color.Orange;
                         break;
                 };
 
@@ -566,6 +567,11 @@ namespace UAssetGUI
                     default:
                         Console.WriteLine($"unimplemented {ex}");
                         break;
+                }
+
+                if (node.Name.Contains("EX_"))
+                {
+                    node.NodeColor = System.Drawing.Color.Orange;
                 }
 
                 nodeMap.Add(ex, node);

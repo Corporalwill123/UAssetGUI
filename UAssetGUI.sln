@@ -11,6 +11,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UAssetGUI", "UAssetGUI\UAss
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UAssetAPI.Benchmark", "UAssetAPI\UAssetAPI.Benchmark\UAssetAPI.Benchmark.csproj", "{A74E7E85-1797-477C-AEC1-583AE7D109D0}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NodeEditor", "NodeEditorWinforms\NodeEditor\NodeEditor.csproj", "{2A51D621-3E0D-4293-A2AD-964721BFFF7B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug Verbose|Any CPU = Debug Verbose|Any CPU

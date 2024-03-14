@@ -655,6 +655,41 @@ namespace UAssetGUI
         {
             try
             {
+                
+                StringBuilder inputBuilder = new StringBuilder();
+                
+                var functionNodes = new List<int>();
+                inputBuilder.AppendLine("strict digraph {");
+                inputBuilder.AppendLine("rankdir=\"LR\"");
+                var nodeDict = NodeEditor.graph.Nodes.Select((v, i) => (v, i)).ToDictionary(p => p.v, p => p.i);
+                foreach (var entry in nodeDict)
+                {
+                    var inputs = String.Join(" | ", entry.Key.GetInputs().Select(p => $"<{p.Name}>{p.Name}"));
+                    var outputs = String.Join(" | ", entry.Key.GetOutputs().Select(p => $"<{p.Name}>{p.Name}"));
+                    inputBuilder.AppendLine($"{entry.Value} [shape=\"record\", width={entry.Key.GetNodeBounds().Width*4/NodeVisual.NodeWidth}, label=\"{{{{ {{{entry.Key.Name}}} | {{ {{ {inputs} }} | {{ {outputs} }} }} | footer }}}}\"]");
+                    if (entry.Key.NodeColor == System.Drawing.Color.Salmon) // TODO possibly worst way to detect special nodes ever
+                    {
+                        functionNodes.Add(entry.Value);
+                    }
+                }
+                foreach (var conn in NodeEditor.graph.Connections)
+                {
+                    var weight = conn.GetType() == typeof(ExecutionPath) ? 3 : 1; // can't tell if this is actually doing anything
+                    inputBuilder.AppendLine($"{nodeDict[conn.OutputNode]}:{conn.OutputSocketName}:e -> {nodeDict[conn.InputNode]}:{conn.InputSocketName}:w [weight = {weight}]");
+                }
+
+                inputBuilder.AppendLine("{");
+                inputBuilder.AppendLine("rank = \"source\";");
+                foreach (var fn in functionNodes)
+                {
+                    inputBuilder.AppendLine(fn.ToString());
+                }
+                inputBuilder.AppendLine("}");
+
+                inputBuilder.AppendLine("}");
+
+                string inputString = inputBuilder.ToString();
+
                 var info = new ProcessStartInfo("bin\\dot.exe");
                 info.Arguments = "-Tplain -y";
                 info.UseShellExecute = false;
@@ -665,38 +700,8 @@ namespace UAssetGUI
 
                 var dot = p.StandardInput;
 
-                StringBuilder inputString = new StringBuilder();
-                
-                var functionNodes = new List<int>();
-                inputString.AppendLine("strict digraph {");
-                inputString.AppendLine("rankdir=\"LR\"");
-                var nodeDict = NodeEditor.graph.Nodes.Select((v, i) => (v, i)).ToDictionary(p => p.v, p => p.i);
-                foreach (var entry in nodeDict)
-                {
-                    var inputs = String.Join(" | ", entry.Key.GetInputs().Select(p => $"<{p.Name}>{p.Name}"));
-                    var outputs = String.Join(" | ", entry.Key.GetOutputs().Select(p => $"<{p.Name}>{p.Name}"));
-                    inputString.AppendLine($"{entry.Value} [shape=\"record\", width={entry.Key.GetNodeBounds().Width*4/NodeVisual.NodeWidth}, label=\"{{{{ {{{entry.Key.Name}}} | {{ {{ {inputs} }} | {{ {outputs} }} }} | footer }}}}\"]");
-                    if (entry.Key.NodeColor == System.Drawing.Color.Salmon) // TODO possibly worst way to detect special nodes ever
-                    {
-                        functionNodes.Add(entry.Value);
-                    }
-                }
-                foreach (var conn in NodeEditor.graph.Connections)
-                {
-                    var weight = conn.GetType() == typeof(ExecutionPath) ? 3 : 1; // can't tell if this is actually doing anything
-                    inputString.AppendLine($"{nodeDict[conn.OutputNode]}:{conn.OutputSocketName}:e -> {nodeDict[conn.InputNode]}:{conn.InputSocketName}:w [weight = {weight}]");
-                }
 
-                inputString.AppendLine("{");
-                inputString.AppendLine("rank = \"source\";");
-                foreach (var fn in functionNodes)
-                {
-                    inputString.AppendLine(fn.ToString());
-                }
-                inputString.AppendLine("}");
-
-                inputString.AppendLine("}");
-                dot.Write(inputString.ToString());
+                dot.Write(inputString);
                 dot.Close();
 
                 var scaleX = 50.0f;

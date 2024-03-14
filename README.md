@@ -16,7 +16,7 @@ If you'd like to compile UAssetGUI for yourself, read on:
 ### Prerequisites
 * Visual Studio 2019 or later
 * Git
-* Graphviz (Graphviz/bin must be in system PATH)
+* Graphviz (must be included in system PATH)
 
 ### Initial Setup
 1. Clone the UAssetGUI repository:

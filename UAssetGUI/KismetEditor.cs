@@ -654,7 +654,7 @@ namespace UAssetGUI
         {
             try
             {
-                var info = new ProcessStartInfo("dot.exe");
+                var info = new ProcessStartInfo("bin\\dot.exe");
                 info.Arguments = "-Tplain -y";
                 info.UseShellExecute = false;
                 info.CreateNoWindow = true;

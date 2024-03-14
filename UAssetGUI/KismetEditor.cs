@@ -6,6 +6,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
+using System.Text;
 using System.Windows.Forms;
 
 using UAssetAPI;
@@ -664,15 +665,17 @@ namespace UAssetGUI
 
                 var dot = p.StandardInput;
 
+                StringBuilder inputString = new StringBuilder();
+                
                 var functionNodes = new List<int>();
-                dot.WriteLine("strict digraph {");
-                dot.WriteLine("rankdir=\"LR\"");
+                inputString.AppendLine("strict digraph {");
+                inputString.AppendLine("rankdir=\"LR\"");
                 var nodeDict = NodeEditor.graph.Nodes.Select((v, i) => (v, i)).ToDictionary(p => p.v, p => p.i);
                 foreach (var entry in nodeDict)
                 {
                     var inputs = String.Join(" | ", entry.Key.GetInputs().Select(p => $"<{p.Name}>{p.Name}"));
                     var outputs = String.Join(" | ", entry.Key.GetOutputs().Select(p => $"<{p.Name}>{p.Name}"));
-                    dot.WriteLine($"{entry.Value} [shape=\"record\", width={entry.Key.GetNodeBounds().Width*4/NodeVisual.NodeWidth}, label=\"{{{{ {{{entry.Key.Name}}} | {{ {{ {inputs} }} | {{ {outputs} }} }} | footer }}}}\"]");
+                    inputString.AppendLine($"{entry.Value} [shape=\"record\", width={entry.Key.GetNodeBounds().Width*4/NodeVisual.NodeWidth}, label=\"{{{{ {{{entry.Key.Name}}} | {{ {{ {inputs} }} | {{ {outputs} }} }} | footer }}}}\"]");
                     if (entry.Key.NodeColor == System.Drawing.Color.Salmon) // TODO possibly worst way to detect special nodes ever
                     {
                         functionNodes.Add(entry.Value);
@@ -681,18 +684,19 @@ namespace UAssetGUI
                 foreach (var conn in NodeEditor.graph.Connections)
                 {
                     var weight = conn.GetType() == typeof(ExecutionPath) ? 3 : 1; // can't tell if this is actually doing anything
-                    dot.WriteLine($"{nodeDict[conn.OutputNode]}:{conn.OutputSocketName}:e -> {nodeDict[conn.InputNode]}:{conn.InputSocketName}:w [weight = {weight}]");
+                    inputString.AppendLine($"{nodeDict[conn.OutputNode]}:{conn.OutputSocketName}:e -> {nodeDict[conn.InputNode]}:{conn.InputSocketName}:w [weight = {weight}]");
                 }
 
-                dot.WriteLine("{");
-                dot.WriteLine("rank = \"source\";");
+                inputString.AppendLine("{");
+                inputString.AppendLine("rank = \"source\";");
                 foreach (var fn in functionNodes)
                 {
-                    dot.WriteLine(fn);
+                    inputString.AppendLine(fn.ToString());
                 }
-                dot.WriteLine("}");
+                inputString.AppendLine("}");
 
-                dot.WriteLine("}");
+                inputString.AppendLine("}");
+                dot.Write(inputString.ToString());
                 dot.Close();
 
                 var scaleX = 50.0f;

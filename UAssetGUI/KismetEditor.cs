@@ -355,6 +355,13 @@ namespace UAssetGUI
                             label(fullName.Substring(fullName.LastIndexOf('.') + 1));
                             break;
                         }
+                    case EX_DefaultVariable e:
+                        {
+                            String fullName = UAssetAPI.Kismet.KismetSerializer.SerializePropertyPointer(e.Variable, new[] { "Variable Name" })[0].Value.ToString();
+                            node.Name = "DefaultVariable";
+                            label(fullName.Substring(fullName.LastIndexOf('.') + 1));
+                            break;
+                        }
                     //case EX_ComputedJump:
                     //case EX_NoObject:
                     //case EX_IntOne:
@@ -389,6 +396,9 @@ namespace UAssetGUI
                     case EX_NoObject:
                         node.Name = "Null Reference";
                         break;
+                    case EX_RotationConst:
+                        node.Name = "Rotation";
+                        break;
                     //case EX_Nothing:
                     case EX_ObjectConst e:
                         node.Name = "Object";
@@ -398,6 +408,33 @@ namespace UAssetGUI
                         node.Name = "Float";
                         label(e.Value.ToString());
                         break;
+                    case EX_TextConst e:
+                        {
+                            int index = 0;
+                            node.Name = "Text";
+                            switch (e.Value.TextLiteralType)
+                            {
+                                case EBlueprintTextLiteralType.Empty:
+                                    label("Empty");
+                                    break;
+                                case EBlueprintTextLiteralType.LocalizedText:
+                                    label("SourceString: " + UAssetAPI.Kismet.KismetSerializer.ReadString(e.Value.LocalizedSource, ref index));
+                                    label("LocalizationKey: " + UAssetAPI.Kismet.KismetSerializer.ReadString(e.Value.LocalizedKey, ref index));
+                                    label("LocalizationNamespace" + UAssetAPI.Kismet.KismetSerializer.ReadString(e.Value.LocalizedNamespace, ref index));
+                                    break;
+                                case EBlueprintTextLiteralType.InvariantText:
+                                    label("SourceString: " + UAssetAPI.Kismet.KismetSerializer.ReadString(e.Value.InvariantLiteralString, ref index));
+                                    break;
+                                case EBlueprintTextLiteralType.LiteralString:
+                                    label("SourceString: " + UAssetAPI.Kismet.KismetSerializer.ReadString(e.Value.LiteralString, ref index));
+                                    break;
+                                case EBlueprintTextLiteralType.StringTableEntry:
+                                    label("TableId: " + UAssetAPI.Kismet.KismetSerializer.ReadString(e.Value.StringTableId, ref index));
+                                    label("TableKey: " + UAssetAPI.Kismet.KismetSerializer.ReadString(e.Value.StringTableKey, ref index));
+                                    break;
+                            }
+                            break;
+                        }
                     case EX_StringConst e:
                         node.Name = "String";
                         label("\"" + e.Value + "\"");
@@ -434,6 +471,12 @@ namespace UAssetGUI
                         break;
                     case EX_StructConst e:
                         node.Name = "Struct";
+                        break;
+                    case EX_ArrayGetByRef:
+                        node.Name = "GetByRef";
+                        break;
+                    case EX_TransformConst:
+                        node.Name = "Transform";
                         break;
                     case EX_StructMemberContext e:
                         {
@@ -585,13 +628,34 @@ namespace UAssetGUI
                             exp("expression", e.TargetExpression);
                             break;
                         }
+                    case EX_ArrayGetByRef e:
+                        exp("Array", e.ArrayVariable);
+                        exp("Index", e.ArrayIndex);
+                        break;
                     case EX_StructMemberContext e:
                         exp("struct", e.StructExpression);
                         break;
                     case EX_VectorConst e:
-                        exp("x", new EX_FloatConst() {Value = e.Value.XFloat});
-                        exp("y", new EX_FloatConst() {Value = e.Value.YFloat});
-                        exp("z", new EX_FloatConst() {Value = e.Value.ZFloat});
+                        exp("x", new EX_FloatConst() { Value = e.Value.XFloat });
+                        exp("y", new EX_FloatConst() { Value = e.Value.YFloat });
+                        exp("z", new EX_FloatConst() { Value = e.Value.ZFloat });
+                        break;
+                    case EX_RotationConst e:
+                        exp("roll", new EX_FloatConst() { Value = e.Value.RollFloat });
+                        exp("pitch", new EX_FloatConst() { Value = e.Value.PitchFloat });
+                        exp("yaw", new EX_FloatConst() { Value = e.Value.YawFloat });
+                        break;
+                    case EX_TransformConst e:
+                        exp("translationX", new EX_FloatConst() { Value = e.Value.Translation.XFloat });
+                        exp("translationY", new EX_FloatConst() { Value = e.Value.Translation.YFloat });
+                        exp("translationZ", new EX_FloatConst() { Value = e.Value.Translation.ZFloat });
+                        exp("rotationX", new EX_FloatConst() { Value = e.Value.Rotation.XFloat });
+                        exp("rotationY", new EX_FloatConst() { Value = e.Value.Rotation.YFloat });
+                        exp("rotationZ", new EX_FloatConst() { Value = e.Value.Rotation.ZFloat });
+                        exp("rotationW", new EX_FloatConst() { Value = e.Value.Rotation.WFloat });
+                        exp("scaleX", new EX_FloatConst() { Value = e.Value.Scale3D.XFloat });
+                        exp("scaleY", new EX_FloatConst() { Value = e.Value.Scale3D.YFloat });
+                        exp("scaleZ", new EX_FloatConst() { Value = e.Value.Scale3D.ZFloat });
                         break;
                     default:
                         Console.WriteLine($"unimplemented {ex}");

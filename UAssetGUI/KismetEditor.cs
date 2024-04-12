@@ -466,10 +466,10 @@ namespace UAssetGUI
                     case EX_VirtualFunction e:
                         node.Name = "VirtualFunc: " + e.VirtualFunctionName.ToString();
                         break;
-                    case EX_Context e:
+                    case EX_Context:
                         node.Name = "Context";
                         break;
-                    case EX_StructConst e:
+                    case EX_StructConst:
                         node.Name = "Struct";
                         break;
                     case EX_ArrayGetByRef:
@@ -481,7 +481,11 @@ namespace UAssetGUI
                     case EX_StructMemberContext e:
                         {
                             String fullName = UAssetAPI.Kismet.KismetSerializer.SerializePropertyPointer(e.StructMemberExpression, new[] { "Property Name" })[0].Value.ToString();
-                            node.Name = "Struct Member: " + fullName.Substring(fullName.LastIndexOf('.') + 1);
+                            var startIndex = fullName.LastIndexOf('.') + 1;
+                            fullName = fullName.Substring(startIndex);
+                            var endIndex = fullName.IndexOf("_");
+                            endIndex = endIndex == -1 ? fullName.Length : endIndex;
+                            node.Name = "Struct Member: " + fullName.Substring(0, endIndex);
                             break;
                         }
                     case EX_PrimitiveCast e:
@@ -506,7 +510,9 @@ namespace UAssetGUI
                     case EX_DynamicCast e:
                         node.Name = "Dynamic Cast to " + UAssetAPI.Kismet.KismetSerializer.GetName(e.ClassPtr.Index);
                         break;
-                    //case EX_InterfaceContext e:
+                    case EX_InterfaceContext e:
+                        node.Name = "Interface";
+                        break;
                     default:
                         //node.Name = "Default:" + node.Name;
                         break;

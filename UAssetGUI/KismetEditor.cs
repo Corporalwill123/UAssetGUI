@@ -325,6 +325,10 @@ namespace UAssetGUI
                     Name = type.Name,
                 };
 
+                void label(string name)
+                {
+                    type.Parameters.Add(new Parameter { Name = name, Direction = Direction.None, ParameterType = typeof(Value) });
+                }
                 switch (ex)
                 {
                     case EX_Self:
@@ -333,19 +337,22 @@ namespace UAssetGUI
                     case EX_LocalVariable e:
                         {
                             String fullName = UAssetAPI.Kismet.KismetSerializer.SerializePropertyPointer(e.Variable, new[] { "Variable Name" })[0].Value.ToString();
-                            node.Name = "LocalVariable\n\n" + fullName.Substring(fullName.LastIndexOf('.') + 1);
+                            node.Name = "LocalVariable";
+                            label(fullName.Substring(fullName.LastIndexOf('.') + 1));
                             break;
                         }
                     case EX_LocalOutVariable e:
                         {
                             String fullName = UAssetAPI.Kismet.KismetSerializer.SerializePropertyPointer(e.Variable, new[] { "Variable Name" })[0].Value.ToString();
-                            node.Name = "LocalOut\n\n" + fullName.Substring(fullName.LastIndexOf('.') + 1);
+                            node.Name = "LocalOut";
+                            label(fullName.Substring(fullName.LastIndexOf('.') + 1));
                             break;
                         }
                     case EX_InstanceVariable e:
                         {
                             String fullName = UAssetAPI.Kismet.KismetSerializer.SerializePropertyPointer(e.Variable, new[] { "Variable Name" })[0].Value.ToString();
-                            node.Name = "InstanceVariable\n\n" + fullName.Substring(fullName.LastIndexOf('.') + 1);
+                            node.Name = "InstanceVariable";
+                            label(fullName.Substring(fullName.LastIndexOf('.') + 1));
                             break;
                         }
                     //case EX_ComputedJump:
@@ -356,44 +363,56 @@ namespace UAssetGUI
                         node.Name = "Switch";
                         break;
                     case EX_IntConst e:
-                        node.Name = "Int\n\n" + e.Value.ToString();
+                        node.Name = "Int";
+                        label(e.Value.ToString());
                         break;
                     case EX_NameConst e:
-                        node.Name = "Name\n\n" + e.Value.ToString();
+                        node.Name = "Name";
+                        label(e.Value.ToString());
                         break;
                     case EX_True:
-                        node.Name = "Bool\n\nTrue";
+                        node.Name = "Bool";
+                        label("True");
                         break;
                     case EX_False:
-                        node.Name = "Bool\n\nFalse";
+                        node.Name = "Bool";
+                        label("False");
                         break;
                     case EX_ByteConst e:
-                        node.Name = "Byte\n\n" + e.Value.ToString();
+                        node.Name = "Byte";
+                        label(e.Value.ToString());
                         break;
                     case EX_SkipOffsetConst e:
-                        node.Name = "Skip Offset\n\n" + e.Value.ToString();
+                        node.Name = "Skip Offset";
+                        label(e.Value.ToString());
                         break;
                     case EX_NoObject:
                         node.Name = "Null Reference";
                         break;
                     //case EX_Nothing:
                     case EX_ObjectConst e:
-                        node.Name = "Object\n\n" + UAssetAPI.Kismet.KismetSerializer.GetFullName(e.Value.Index);
+                        node.Name = "Object";
+                        label(UAssetAPI.Kismet.KismetSerializer.GetFullName(e.Value.Index));
                         break;
                     case EX_FloatConst e:
-                        node.Name = "Float\n\n" + e.Value.ToString();
+                        node.Name = "Float";
+                        label(e.Value.ToString());
                         break;
                     case EX_StringConst e:
-                        node.Name = "String\n\n" + e.Value;
+                        node.Name = "String";
+                        label("\"" + e.Value + "\"");
                         break;
                     case EX_UnicodeStringConst e:
-                        node.Name = "UniString\n\n" + e.Value;
+                        node.Name = "UniString";
+                        label(e.Value);
                         break;
                     case EX_UInt64Const e:
-                        node.Name = "UInt64\n\n" + e.Value;
+                        node.Name = "UInt64"; 
+                        label(e.Value.ToString());
                         break;
                     case EX_Int64Const e:
-                        node.Name = "Int64\n\n" + e.Value;
+                        node.Name = "Int64";
+                        label(e.Value.ToString());
                         break;
                     case EX_VectorConst:
                         node.Name = "Vector";

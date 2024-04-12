@@ -690,7 +690,7 @@ namespace UAssetGUI
 
                 string inputString = inputBuilder.ToString();
 
-                var info = new ProcessStartInfo("bin\\dot.exe");
+                var info = new ProcessStartInfo(@"bin\dot.exe");
                 info.Arguments = "-Tplain -y";
                 info.UseShellExecute = false;
                 info.CreateNoWindow = true;

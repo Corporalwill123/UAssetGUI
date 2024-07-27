@@ -62,12 +62,16 @@ namespace UAssetGUI
 
             var offsets = GetOffsets(bytecode).ToDictionary(l => l.Item1, l => l.Item2);
             var nodeMap = new Dictionary<KismetExpression, NodeVisual>();
+            var variableMap = new Dictionary<string, NodeVisual>();
             var nodeList = new List<NodeVisual>();
             var nodeOffsets = new Dictionary<NodeVisual, uint>();
 
 
             var jumpConnections = new List<JumpConnection>();
 
+            var currentStructProperties = new List<KismetExpression>();
+            var currentStructPropertiesNames = new List<string>();
+            var currentStructName = "";
             var indexMap = new Dictionary<uint, uint>();
             NodeVisual BuildFunctionNode(FunctionExport fn, uint jump = 0)
             {
@@ -174,6 +178,157 @@ namespace UAssetGUI
                 }
                 KismetExpression en = ex;
               
+                if (Mode == GraphMode.PseudoBlueprint) 
+                {
+                    switch (ex)
+                    {
+                        case EX_Let e:
+                            if (e.Variable is EX_StructMemberContext)
+                            {
+                                var member = e.Variable as EX_StructMemberContext;
+                                if (member.StructExpression is EX_LocalVariable)
+                                {
+                                    var structVariable = member.StructExpression as EX_LocalVariable;
+                                    var structName = UAssetAPI.Kismet.KismetSerializer.SerializePropertyPointer(structVariable.Variable, new[] { "Variable Name" })[0].Value.ToString();
+                                    structName = structName.Substring(structName.LastIndexOf(".") + 1);
+                                    bool makingStruct = false;
+                                    if (structName.StartsWith("K2Node_MakeStruct_"))
+                                    {
+                                        structName = structName.Remove(0, "K2Node_MakeStruct_".Length);
+                                        makingStruct = true;
+                                    }
+                                    if (!makingStruct)
+                                        break;
+                                    if (currentStructName == "")
+                                    {
+                                        currentStructName = structName;
+                                    }
+                                    else if (currentStructName != structName)
+                                    {
+                                        throw new Exception("encountered other struct when making a struct");
+                                    }
+                                    string propertyName = UAssetAPI.Kismet.KismetSerializer.SerializePropertyPointer(member.StructMemberExpression, new[] { "Property Name" })[0].Value.ToString();
+                                    var startIndex = propertyName.LastIndexOf('.') + 1;
+                                    propertyName = propertyName.Substring(startIndex);
+                                    var endIndex = propertyName.IndexOf("_");
+                                    endIndex = endIndex == -1 ? propertyName.Length : endIndex;
+                                    propertyName = propertyName.Substring(0, endIndex);
+                                    currentStructProperties.Add(((EX_Let)en).Expression);
+                                    currentStructPropertiesNames.Add(propertyName);
+                                    MapIndex(index, index + GetSize(ex));
+                                    return null;
+                                }
+                            }
+                            else if (e.Variable is EX_LocalVariable)
+                            {
+                                var variable = e.Variable as EX_LocalVariable;
+                                string fullName = UAssetAPI.Kismet.KismetSerializer.SerializePropertyPointer(variable.Variable, new[] { "Variable Name" })[0].Value.ToString();
+                                variableMap[fullName] = node;
+                                fullName = fullName.Substring(fullName.LastIndexOf(".") + 1);
+                            }
+                            break;
+                        case EX_LetBool e:
+                            if (e.VariableExpression is EX_LocalVariable)
+                            {
+                                var variable = e.VariableExpression as EX_LocalVariable;
+                                string fullName = UAssetAPI.Kismet.KismetSerializer.SerializePropertyPointer(variable.Variable, new[] { "Variable Name" })[0].Value.ToString();
+                                variableMap[fullName] = node;
+                            }
+                            else if (e.VariableExpression is EX_StructMemberContext)
+                            {
+                                var member = e.VariableExpression as EX_StructMemberContext;
+                                if (member.StructExpression is EX_LocalVariable)
+                                {
+                                    var structVariable = member.StructExpression as EX_LocalVariable;
+                                    var structName = UAssetAPI.Kismet.KismetSerializer.SerializePropertyPointer(structVariable.Variable, new[] { "Variable Name" })[0].Value.ToString();
+                                    structName = structName.Substring(structName.LastIndexOf(".") + 1);
+                                    bool makingStruct = false;
+                                    if (structName.StartsWith("K2Node_MakeStruct_"))
+                                    {
+                                        structName = structName.Remove(0, "K2Node_MakeStruct_".Length);
+                                        makingStruct = true;
+                                    }
+                                    if (!makingStruct)
+                                        break;
+                                    if (currentStructName == "")
+                                    {
+                                        currentStructName = structName;
+                                    }
+                                    else if (currentStructName != structName)
+                                    {
+                                        throw new Exception("encountered other struct when building local struct");
+                                    }
+                                    string propertyName = UAssetAPI.Kismet.KismetSerializer.SerializePropertyPointer(member.StructMemberExpression, new[] { "Property Name" })[0].Value.ToString();
+                                    var startIndex = propertyName.LastIndexOf('.') + 1;
+                                    propertyName = propertyName.Substring(startIndex);
+                                    var endIndex = propertyName.IndexOf("_");
+                                    endIndex = endIndex == -1 ? propertyName.Length : endIndex;
+                                    propertyName = propertyName.Substring(0, endIndex);
+                                    currentStructProperties.Add(((EX_LetBool)en).AssignmentExpression);
+                                    currentStructPropertiesNames.Add(propertyName);
+                                }
+                            }
+                            break;
+                        case EX_LetDelegate e:
+                            if (e.VariableExpression is EX_LocalVariable)
+                            {
+                                var variable = e.VariableExpression as EX_LocalVariable;
+                                string fullName = UAssetAPI.Kismet.KismetSerializer.SerializePropertyPointer(variable.Variable, new[] { "Variable Name" })[0].Value.ToString();
+                                variableMap[fullName] = node;
+                            }
+                            break;
+                        case EX_LetMulticastDelegate e:
+                            if (e.VariableExpression is EX_LocalVariable)
+                            {
+                                var variable = e.VariableExpression as EX_LocalVariable;
+                                string fullName = UAssetAPI.Kismet.KismetSerializer.SerializePropertyPointer(variable.Variable, new[] { "Variable Name" })[0].Value.ToString();
+                                variableMap[fullName] = node;
+                            }
+                            break;
+                        case EX_LetObj e:
+                            if (e.VariableExpression is EX_LocalVariable)
+                            {
+                                var variable = e.VariableExpression as EX_LocalVariable;
+                                string fullName = UAssetAPI.Kismet.KismetSerializer.SerializePropertyPointer(variable.Variable, new[] { "Variable Name" })[0].Value.ToString();
+                                variableMap[fullName] = node;
+                            }
+                            else if (e.VariableExpression is EX_StructMemberContext)
+                            {
+                                var member = e.VariableExpression as EX_StructMemberContext;
+                                if (member.StructExpression is EX_LocalVariable)
+                                {
+                                    var structVariable = member.StructExpression as EX_LocalVariable;
+                                    var structName = UAssetAPI.Kismet.KismetSerializer.SerializePropertyPointer(structVariable.Variable, new[] { "Variable Name" })[0].Value.ToString();
+                                    structName = structName.Substring(structName.LastIndexOf(".") + 1);
+                                    bool makingStruct = false;
+                                    if (structName.StartsWith("K2Node_MakeStruct_"))
+                                    {
+                                        structName = structName.Remove(0, "K2Node_MakeStruct_".Length);
+                                        makingStruct = true;
+                                    }
+                                    if (!makingStruct)
+                                        break;
+                                    if (currentStructName == "")
+                                    {
+                                        currentStructName = structName;
+                                    }
+                                    else if (currentStructName != structName)
+                                    {
+                                        throw new Exception("encountered other struct when building local struct");
+                                    }
+                                    string propertyName = UAssetAPI.Kismet.KismetSerializer.SerializePropertyPointer(member.StructMemberExpression, new[] { "Property Name" })[0].Value.ToString();
+                                    var startIndex = propertyName.LastIndexOf('.') + 1;
+                                    propertyName = propertyName.Substring(startIndex);
+                                    var endIndex = propertyName.IndexOf("_");
+                                    endIndex = endIndex == -1 ? propertyName.Length : endIndex;
+                                    propertyName = propertyName.Substring(0, endIndex);
+                                    currentStructProperties.Add(((EX_LetObj)en).AssignmentExpression);
+                                    currentStructPropertiesNames.Add(propertyName);
+                                }
+                            }
+                            break;
+                    }
+                }
                 nodeOffsets[node] = index;
                 if (Mode == GraphMode.PseudoBlueprint && ex is EX_Context)
                 {
@@ -596,8 +751,93 @@ namespace UAssetGUI
                     Name = ex.GetType().Name,
                     Parameters = new List<Parameter>{},
                 };
+                NodeVisual node;
+                if (Mode == GraphMode.PseudoBlueprint)
+                {
+                    if (ex is EX_LocalVariable)
+                    {
+                        bool skip = false;
+                        var variable = ex as EX_LocalVariable;
+                        string fullName = UAssetAPI.Kismet.KismetSerializer.SerializePropertyPointer(variable.Variable, new[] { "Variable Name" })[0].Value.ToString();
+                        NodeVisual statement;
+                        if (variableMap.TryGetValue(fullName, out statement))
+                        {
+                            if (nodeOffsets.TryGetValue(statement, out uint nodeIndex))
+                            {
+                                if (parentIndex == nodeIndex)
+                                {
+                                    skip = true;
+                                }
+                                if (!skip)
+                                {
+                                    var nodeEx = offsets[nodeIndex];
 
-                var node = new NodeVisual()
+                                    switch (nodeEx)
+                                    {
+                                        case EX_Let:
+                                        case EX_LetBool:
+                                        case EX_LetDelegate:
+                                        case EX_LetMulticastDelegate:
+                                        case EX_LetObj:
+                                            var inputConnections = NodeEditor.graph.Connections.Where(x => x.InputNode == statement).ToList();
+                                            var valueConnection = inputConnections.Where(x => x.InputSocketName == "value").ToList();
+                                            node = valueConnection.Last().OutputNode;
+                                            inputConnections.Except(valueConnection).ToList().ForEach(x => nodeList.Remove(x.OutputNode)) ;
+                                            NodeEditor.graph.Connections.Where(x => x.InputNode == statement).ToList().ForEach(x => NodeEditor.graph.Connections.Remove(x));
+                                            variableMap[fullName] = node;
+                                            jumpConnections.Where(x => x.OutputNode == statement).ToList().ForEach(x=>jumpConnections.Remove(x));
+                                            if (nodeList.Contains(statement))
+                                            {
+                                                nodeList.Remove(statement);
+                                                MapIndex(nodeIndex, nodeIndex + GetSize(nodeEx));
+                                            }
+                                            return node;
+                                            break;
+                                        default:
+                                            return statement;
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                return statement;
+                            }
+                        }
+                    }
+                    switch (ex)
+                    {
+                        case EX_LocalVariable:
+                        case EX_InstanceVariable:
+                        case EX_ByteConst:
+                        case EX_FloatConst:
+                        case EX_IntConst:
+                        case EX_Int64Const:
+                        case EX_NameConst:
+                        case EX_NoObject:
+                        case EX_Nothing:
+                        case EX_UInt64Const:
+                        case EX_ObjectConst:
+                        case EX_StringConst:
+                        case EX_True:
+                        case EX_False:
+                            break;
+                        default:
+                            var list = nodeMap.Where(x => ExpressionsEqual(x.Key, ex)).Select(x => x.Value);
+                            if (list.Count() != 0)
+                            {
+                                var mappedNode = list.Last();
+                                if(mappedNode.GetInputs().Count() != 0)
+                                {
+                                    return list.Last();
+                                }
+                            }
+                                
+                            break;
+                    }
+                    
+                }
+
+                node = new NodeVisual()
                 {
                     Type = type,
                     Callable = false,
@@ -629,6 +869,34 @@ namespace UAssetGUI
                     exp("owner", e.ObjectExpression);
                     en = e.ContextExpression;
                 }
+                bool makingLocalStruct = false;
+
+                if(Mode == GraphMode.PseudoBlueprint && ex is EX_LocalVariable)
+                {
+                    var variable = ex as EX_LocalVariable;
+                    string fullVariableName = UAssetAPI.Kismet.KismetSerializer.SerializePropertyPointer(variable.Variable, new[] { "Variable Name" })[0].Value.ToString();
+                    string fullName = fullVariableName.Substring(fullVariableName.LastIndexOf(".") + 1);
+
+                    if (fullName.StartsWith("K2Node_MakeStruct_"))
+                    {
+                        fullName = fullName.Remove(0, "K2Node_MakeStruct_".Length);
+                        makingLocalStruct = true;
+                    }
+                    if (makingLocalStruct)
+                    {
+                        if (currentStructName == "")
+                        {
+                            throw new Exception("Attempting to create struct without a name");
+                        }
+                        if (fullName != currentStructName)
+                        {
+                            throw new Exception("Attempt to create struct using wrong name.");
+                        }
+                        var makeStruct = new EX_StructConst() { Value = currentStructProperties.ToArray(), Struct = variable.Variable.Old };
+                        en = makeStruct;
+                    }
+                }
+
                 switch (en)
                 {
                     case EX_Self:
@@ -947,8 +1215,23 @@ namespace UAssetGUI
                             int index = 1;
                             foreach (var property in e.Value)
                             {
-                                exp($"property {index}", property);
+                                if (makingLocalStruct)
+                                {
+                                    exp(currentStructPropertiesNames[index-1], property);
+                                }
+                                else 
+                                {
+                                    exp($"property {index}", property);
+                                }
                                 index++;
+                            }
+                            if (makingLocalStruct)
+                            {
+                                node.Name = "Make " + currentStructName;
+                                makingLocalStruct = false;
+                                currentStructName = "";
+                                currentStructProperties.Clear();
+                                currentStructPropertiesNames.Clear();
                             }
                             break;
                         }

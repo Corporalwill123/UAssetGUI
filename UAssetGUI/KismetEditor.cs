@@ -762,11 +762,14 @@ namespace UAssetGUI
                     }
                 }
                 foreach (var conn in NodeEditor.graph.Connections)
+            {
+                var weight = conn.GetType() == typeof(ExecutionPath) ? 3 : 1; // can't tell if this is actually doing anything
+                if (nodeDict.ContainsKey(conn.OutputNode) & nodeDict.ContainsKey(conn.InputNode))
                 {
                     var weight = conn.GetType() == typeof(ExecutionPath) ? 3 : 1; // can't tell if this is actually doing anything
                     inputBuilder.AppendLine($"{nodeDict[conn.OutputNode]}:{conn.OutputSocketName}:e -> {nodeDict[conn.InputNode]}:{conn.InputSocketName}:w [weight = {weight}]");
                 }
-
+            }
                 inputBuilder.AppendLine("{");
                 inputBuilder.AppendLine("rank = \"source\";");
                 foreach (var fn in functionNodes)

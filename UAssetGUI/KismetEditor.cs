@@ -67,6 +67,7 @@ namespace UAssetGUI
 
             var jumpConnections = new List<JumpConnection>();
 
+            var indexMap = new Dictionary<uint, uint>();
             NodeVisual BuildFunctionNode(FunctionExport fn, uint jump = 0)
             {
                 var type = new CustomNodeType
@@ -89,6 +90,29 @@ namespace UAssetGUI
 
                 NodeEditor.AddNode(node, false);
                 return node;
+            }
+
+            void MapIndex(uint from, uint to)
+            {
+                while (indexMap.ContainsKey(to)){
+                    to = indexMap[to];
+                }
+                jumpConnections.ForEach(x => x.InputIndex = x.InputIndex == from ? to : x.InputIndex);
+                for (int i = 0; i < jumpConnections.Count; i++)
+                {
+                    if (jumpConnections[i].InputIndex == from)
+                    {
+                        var newConnection = jumpConnections[i];
+                        newConnection.InputIndex = to;
+                        jumpConnections[i] = newConnection;
+                    }
+                }
+                var keys = indexMap.Where(x => x.Value == from).Select(x=> x.Key).ToArray();
+                foreach (var key in keys)
+                {
+                    indexMap[key] = to;
+                }
+                indexMap[from] = to;
             }
 
             NodeVisual BuildExecNode(uint index, KismetExpression ex)
@@ -119,6 +143,10 @@ namespace UAssetGUI
                 }
                 void jump(string name, uint to)
                 {
+                    if (indexMap.ContainsKey(to))
+                    {
+                        to = indexMap[to];
+                    }
                     type.Parameters.Add(new Parameter { Name = name, Direction = Direction.Out, ParameterType = typeof(ExecutionPath) });
                     jumpConnections.Add(new JumpConnection { OutputNode = node, OutputPin = name, InputIndex = to });
                 }

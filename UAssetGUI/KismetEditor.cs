@@ -343,7 +343,231 @@ namespace UAssetGUI
                 return node;
             }
 
-            NodeVisual BuildExpressionNode(KismetExpression ex)
+            bool ExpressionsEqual(KismetExpression ex1, KismetExpression ex2)
+            {
+                if (ex1 == ex2) return true;
+                if (ex1.GetType() != ex2.GetType()) return false;
+                switch (ex1)
+                {
+                    case EX_Self:
+                        return true;
+                    case EX_LocalVariable:
+                        {
+                            string fullName1 = UAssetAPI.Kismet.KismetSerializer.SerializePropertyPointer(((EX_LocalVariable)ex1).Variable, new[] { "Variable Name" })[0].Value.ToString();
+                            string fullName2 = UAssetAPI.Kismet.KismetSerializer.SerializePropertyPointer(((EX_LocalVariable)ex2).Variable, new[] { "Variable Name" })[0].Value.ToString();
+                            return fullName1 == fullName2;
+                        }
+                    case EX_LocalOutVariable:
+                        {
+                            string fullName1 = UAssetAPI.Kismet.KismetSerializer.SerializePropertyPointer(((EX_LocalOutVariable)ex1).Variable, new[] { "Variable Name" })[0].Value.ToString();
+                            string fullName2 = UAssetAPI.Kismet.KismetSerializer.SerializePropertyPointer(((EX_LocalOutVariable)ex2).Variable, new[] { "Variable Name" })[0].Value.ToString();
+                            return fullName1 == fullName2;
+                        }
+                    case EX_InstanceVariable:
+                        {
+                            string fullName1 = UAssetAPI.Kismet.KismetSerializer.SerializePropertyPointer(((EX_InstanceVariable)ex1).Variable, new[] { "Variable Name" })[0].Value.ToString();
+                            string fullName2 = UAssetAPI.Kismet.KismetSerializer.SerializePropertyPointer(((EX_InstanceVariable)ex2).Variable, new[] { "Variable Name" })[0].Value.ToString();
+                            return fullName1 == fullName2;
+                        }
+                    case EX_NoObject:
+                    case EX_Nothing:
+                    case EX_True:
+                    case EX_False:
+                        return true;
+                    case EX_IntConst:
+                        return ((EX_IntConst)ex1).Value == ((EX_IntConst)ex2).Value;
+                    case EX_ByteConst:
+                        return ((EX_ByteConst)ex1).Value == ((EX_ByteConst)ex2).Value;
+                    case EX_ObjectConst:
+                        return ((EX_ObjectConst)ex1).Value.Index == ((EX_ObjectConst)ex2).Value.Index;
+                    case EX_FloatConst:
+                        return ((EX_FloatConst)ex1).Value == ((EX_FloatConst)ex2).Value;
+                    case EX_StringConst:
+                        return ((EX_StringConst)ex1).Value == ((EX_StringConst)ex2).Value;
+                    case EX_UnicodeStringConst:
+                        return ((EX_UnicodeStringConst)ex1).Value == ((EX_UnicodeStringConst)ex2).Value;
+                    case EX_UInt64Const:
+                        return ((EX_UInt64Const)ex1).Value == ((EX_UInt64Const)ex2).Value;
+                    case EX_Int64Const:
+                        return ((EX_Int64Const)ex1).Value == ((EX_Int64Const)ex2).Value;
+                    case EX_NameConst:
+                        return ((EX_NameConst)ex1).Value == ((EX_NameConst)ex2).Value;
+                    case EX_SkipOffsetConst:
+                        return ((EX_SkipOffsetConst)ex1).Value == ((EX_SkipOffsetConst)ex2).Value; ;
+                    case EX_CallMath:
+                        {
+                            var exp1 = ex1 as EX_CallMath;
+                            var exp2 = ex2 as EX_CallMath;
+                            if (exp1.StackNode.Index != exp2.StackNode.Index)
+                                return false;
+                            if (exp1.Parameters.Length != exp2.Parameters.Length)
+                                return false;
+                            for (int i = 0; i < exp1.Parameters.Length; i++)
+                            {
+                                if (!ExpressionsEqual(exp1.Parameters[i], exp2.Parameters[i]))
+                                    return false;
+                            }
+                            return true;
+                        }
+                    case EX_LocalFinalFunction:
+                        {
+                            var exp1 = ex1 as EX_LocalFinalFunction;
+                            var exp2 = ex2 as EX_LocalFinalFunction;
+                            if (exp1.StackNode.Index != exp2.StackNode.Index)
+                                return false;
+                            if (exp1.Parameters.Length != exp2.Parameters.Length)
+                                return false;
+                            for (int i = 0; i < exp1.Parameters.Length; i++)
+                            {
+                                if (!ExpressionsEqual(exp1.Parameters[i], exp2.Parameters[i]))
+                                    return false;
+                            }
+                            return true;
+                        }
+                    case EX_FinalFunction:
+                        {
+                            var exp1 = ex1 as EX_FinalFunction;
+                            var exp2 = ex2 as EX_FinalFunction;
+                            if (exp1.StackNode.Index != exp2.StackNode.Index)
+                                return false;
+                            if (exp1.Parameters.Length != exp2.Parameters.Length)
+                                return false;
+                            for (int i = 0; i < exp1.Parameters.Length; i++)
+                            {
+                                if (!ExpressionsEqual(exp1.Parameters[i], exp2.Parameters[i]))
+                                    return false;
+                            }
+                            return true;
+                        }
+                    case EX_VirtualFunction:
+                        {
+                            var exp1 = ex1 as EX_VirtualFunction;
+                            var exp2 = ex2 as EX_VirtualFunction;
+                            if (exp1.VirtualFunctionName.ToString() != exp2.VirtualFunctionName.ToString())
+                                return false;
+                            if (exp1.Parameters.Length != exp2.Parameters.Length)
+                                return false;
+                            for (int i = 0; i < exp1.Parameters.Length; i++)
+                            {
+                                if (!ExpressionsEqual(exp1.Parameters[i], exp2.Parameters[i]))
+                                    return false;
+                            }
+                            return true;
+                        }
+                    case EX_Context:
+                        {
+                            var exp1 = ex1 as EX_Context;
+                            var exp2 = ex2 as EX_Context;
+
+                            if (!ExpressionsEqual(exp1.ContextExpression, exp2.ContextExpression))
+                                return false;
+                            if (!ExpressionsEqual(exp1.ObjectExpression, exp2.ObjectExpression))
+                                return false;
+                            return true;
+                        }
+                    case EX_InterfaceContext:
+                        {
+                            var exp1 = ex1 as EX_InterfaceContext;
+                            var exp2 = ex2 as EX_InterfaceContext;
+                            return ExpressionsEqual(exp1.InterfaceValue, exp2.InterfaceValue);
+                        }
+                    case EX_SwitchValue:
+                        {
+                            var exp1 = ex1 as EX_SwitchValue;
+                            var exp2 = ex2 as EX_SwitchValue;
+                            if (!ExpressionsEqual(exp1.IndexTerm, exp2.IndexTerm)) 
+                                return false;
+                            if(exp1.Cases.Length != exp2.Cases.Length)
+                                return false;
+                            for (int i = 0; i < exp1.Cases.Length; i++)
+                            {
+                                if (!ExpressionsEqual(exp1.Cases[i].CaseIndexValueTerm, exp2.Cases[i].CaseIndexValueTerm))
+                                    return false;
+                                if (!ExpressionsEqual(exp1.Cases[i].CaseTerm, exp2.Cases[i].CaseTerm))
+                                    return false;
+                            }
+                            return true;
+                        }
+                    case EX_StructConst:
+                        {
+                            var exp1 = ex1 as EX_StructConst;
+                            var exp2 = ex2 as EX_StructConst;
+                            if (exp1.Struct.Index != exp2.Struct.Index)
+                                return false;
+                            if (exp1.Value.Length != exp2.Value.Length)
+                                return false;
+                            for (int i = 0; i < exp1.Value.Length; i++)
+                            {
+                                if (!ExpressionsEqual(exp1.Value[i], exp2.Value[i]))
+                                    return false;
+                            }
+                            return true;
+                        }
+                    case EX_PrimitiveCast:
+                        {
+                            var exp1 = ex1 as EX_PrimitiveCast;
+                            var exp2 = ex2 as EX_PrimitiveCast;
+                            if (exp1.ConversionType != exp2.ConversionType)
+                                return false;
+                            return ExpressionsEqual(exp1.Target, exp2.Target);
+                        }
+                    case EX_DynamicCast:
+                        {
+                            var exp1 = ex1 as EX_DynamicCast;
+                            var exp2 = ex2 as EX_DynamicCast;
+                            if(exp1.ClassPtr.Index != exp2.ClassPtr.Index)
+                                return false;
+                            return ExpressionsEqual(exp1.TargetExpression, exp2.TargetExpression);
+                        }
+                    case EX_ArrayGetByRef:
+                        {
+                            var exp1 = ex1 as EX_ArrayGetByRef;
+                            var exp2 = ex2 as EX_ArrayGetByRef;
+                            if (!ExpressionsEqual(exp1.ArrayVariable, exp2.ArrayVariable))
+                                return false;
+                            return ExpressionsEqual(exp1.ArrayIndex, exp2.ArrayIndex);
+                        }
+                    case EX_StructMemberContext:
+                        {
+                            var exp1 = ex1 as EX_StructMemberContext;
+                            var exp2 = ex2 as EX_StructMemberContext;
+                            var name1 = UAssetAPI.Kismet.KismetSerializer.SerializePropertyPointer(exp1.StructMemberExpression, new[] { "PropertyName" })[0].Value.ToString();
+                            var name2 = UAssetAPI.Kismet.KismetSerializer.SerializePropertyPointer(exp2.StructMemberExpression, new[] { "PropertyName" })[0].Value.ToString();
+                            if (name1 != name2)
+                                return false;
+                            return ExpressionsEqual(exp1.StructExpression, exp2.StructExpression);
+                        }
+                    case EX_VectorConst:
+                        {
+                            var value1 = ((EX_VectorConst)ex1).Value;
+                            var value2 = ((EX_VectorConst)ex2).Value;
+                            return value1.X==value2.X && value1.Y==value2.Y && value1.Z == value2.Z;
+                        }
+                    case EX_RotationConst:
+                        {
+                            var value1 = ((EX_RotationConst)ex1).Value;
+                            var value2 = ((EX_RotationConst)ex2).Value;
+                            return value1.Pitch == value2.Pitch && value1.Yaw == value2.Yaw && value1.Roll == value2.Roll;
+                        }
+                    case EX_TransformConst:
+                        {
+                            var value1 = ((EX_TransformConst)ex1).Value;
+                            var value2 = ((EX_TransformConst)ex2).Value;
+                            if (value1.Translation.X != value2.Translation.X || value1.Translation.Y != value2.Translation.Y || value1.Translation.Z != value2.Translation.Z)
+                                return false;
+                            if(value1.Rotation.X != value2.Rotation.X || value1.Rotation.Y != value2.Rotation.Y || value1.Rotation.Z != value2.Rotation.Z || value1.Rotation.W != value2.Rotation.W)
+                                return false;
+                            return value1.Scale3D.X == value2.Scale3D.X && value1.Scale3D.Y == value2.Scale3D.Y && value1.Scale3D.Z == value2.Scale3D.Z;
+                        }
+                    default:
+                        throw new NotImplementedException();
+                        return false;
+                        break;
+                }
+                return true;
+            }
+
+            NodeVisual BuildExpressionNode(KismetExpression ex, uint parentIndex)
             {
                 var type = new CustomNodeType
                 {

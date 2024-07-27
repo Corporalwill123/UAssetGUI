@@ -57,6 +57,7 @@ namespace UAssetGUI
 
             var offsets = GetOffsets(bytecode).ToDictionary(l => l.Item1, l => l.Item2);
             var nodeMap = new Dictionary<KismetExpression, NodeVisual>();
+            var nodeList = new List<NodeVisual>();
 
 
             var jumpConnections = new List<JumpConnection>();
@@ -305,7 +306,7 @@ namespace UAssetGUI
                 };
 
                 nodeMap.Add(ex, node);
-                NodeEditor.AddNode(node, false);
+                nodeList.Add(node);
                 return node;
             }
 
@@ -674,7 +675,7 @@ namespace UAssetGUI
                 }
 
                 nodeMap.Add(ex, node);
-                NodeEditor.AddNode(node, false);
+                nodeList.Add(node);
                 return node;
             }
 
@@ -707,6 +708,7 @@ namespace UAssetGUI
                 var node = BuildExecNode(index, ex);
                 index += GetSize(ex);
             }
+            nodeList.ForEach(x => NodeEditor.AddNode(x, false));
             foreach (var jump in jumpConnections)
             {
                 KismetExpression ex;

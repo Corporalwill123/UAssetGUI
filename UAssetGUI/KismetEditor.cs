@@ -337,30 +337,34 @@ namespace UAssetGUI
                         break;
                     case EX_LocalVariable e:
                         {
-                            String fullName = UAssetAPI.Kismet.KismetSerializer.SerializePropertyPointer(e.Variable, new[] { "Variable Name" })[0].Value.ToString();
+                            string fullName = UAssetAPI.Kismet.KismetSerializer.SerializePropertyPointer(e.Variable, new[] { "Variable Name" })[0].Value.ToString();
                             node.Name = "LocalVariable";
                             label(fullName.Substring(fullName.LastIndexOf('.') + 1));
+                            NodeEditor.AddVariable(fullName, node);
                             break;
                         }
                     case EX_LocalOutVariable e:
                         {
-                            String fullName = UAssetAPI.Kismet.KismetSerializer.SerializePropertyPointer(e.Variable, new[] { "Variable Name" })[0].Value.ToString();
+                            string fullName = UAssetAPI.Kismet.KismetSerializer.SerializePropertyPointer(e.Variable, new[] { "Variable Name" })[0].Value.ToString();
                             node.Name = "LocalOut";
                             label(fullName.Substring(fullName.LastIndexOf('.') + 1));
+                            NodeEditor.AddVariable(fullName, node);
                             break;
                         }
                     case EX_InstanceVariable e:
                         {
-                            String fullName = UAssetAPI.Kismet.KismetSerializer.SerializePropertyPointer(e.Variable, new[] { "Variable Name" })[0].Value.ToString();
+                            string fullName = UAssetAPI.Kismet.KismetSerializer.SerializePropertyPointer(e.Variable, new[] { "Variable Name" })[0].Value.ToString();
                             node.Name = "InstanceVariable";
                             label(fullName.Substring(fullName.LastIndexOf('.') + 1));
+                            NodeEditor.AddVariable(fullName, node);
                             break;
                         }
                     case EX_DefaultVariable e:
                         {
-                            String fullName = UAssetAPI.Kismet.KismetSerializer.SerializePropertyPointer(e.Variable, new[] { "Variable Name" })[0].Value.ToString();
+                            string fullName = UAssetAPI.Kismet.KismetSerializer.SerializePropertyPointer(e.Variable, new[] { "Variable Name" })[0].Value.ToString();
                             node.Name = "DefaultVariable";
                             label(fullName.Substring(fullName.LastIndexOf('.') + 1));
+                            NodeEditor.AddVariable(fullName, node);
                             break;
                         }
                     //case EX_ComputedJump:

@@ -749,8 +749,8 @@ namespace UAssetGUI
                     case EX_Context:
                         node.Name = "Context";
                         break;
-                    case EX_StructConst:
-                        node.Name = "Struct";
+                    case EX_StructConst e:
+                        node.Name = "Struct " + UAssetAPI.Kismet.KismetSerializer.GetName(e.Struct.Index);
                         break;
                     case EX_ArrayGetByRef:
                         node.Name = "GetByRef";

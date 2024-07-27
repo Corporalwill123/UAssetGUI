@@ -967,8 +967,33 @@ namespace UAssetGUI
                 {
                     node.NodeColor = System.Drawing.Color.Orange;
                 }
+                
+                if (Mode == GraphMode.PseudoBlueprint)
+                {
+                    switch (ex)
+                    {
+                        case EX_InstanceVariable:
+                        case EX_ByteConst:
+                        case EX_FloatConst:
+                        case EX_IntConst:
+                        case EX_Int64Const:
+                        case EX_UInt64Const:
+                        case EX_ObjectConst:
+                        case EX_StringConst:
+                        case EX_NameConst:
+                        case EX_NoObject:
+                        case EX_Nothing:
+                        case EX_Self:
+                        case EX_True:
+                        case EX_False:
+                            break;
+                        default:
+                            nodeMap[ex] = node;
+                            break;
+                    }
+                }
 
-                nodeMap.Add(ex, node);
+
                 nodeList.Add(node);
                 return node;
             }

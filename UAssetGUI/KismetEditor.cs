@@ -123,6 +123,8 @@ namespace UAssetGUI
 
                 var name = ex.GetType().Name;
 
+                bool skipExec = false;
+                bool skipInput = false;
                 var type = new CustomNodeType
                 {
                     Name = ex.GetType().Name,
@@ -139,7 +141,8 @@ namespace UAssetGUI
 
                 void exec()
                 {
-                    type.Parameters.Add(PinExecute);
+                    if (!skipExec)
+                        type.Parameters.Add(PinExecute);
                 }
                 void jump(string name, uint to)
                 {
@@ -152,15 +155,23 @@ namespace UAssetGUI
                 }
                 void then(string name = "then")
                 {
-                    jump(name, index + GetSize(ex));
+                    if(!skipExec)
+                        jump(name, index + GetSize(ex));
                 }
                 void input(string name, KismetExpression ex)
                 {
-                    type.Parameters.Add(new Parameter { Name = name, Direction = Direction.In, ParameterType = typeof(Value) });
-                    var variable = BuildExpressionNode(ex);
-                    NodeEditor.graph.Connections.Add(new NodeConnection { OutputNode = variable, OutputSocketName = "out", InputNode = node, InputSocketName = name });
+                    if (!skipInput)
+                    {
+                        type.Parameters.Add(new Parameter { Name = name, Direction = Direction.In, ParameterType = typeof(Value) });
+                        var variable = BuildExpressionNode(ex, index);
+                        if (variable == node)
+                        {
+                            throw (new InvalidOperationException());
+                        }
+                        NodeEditor.graph.Connections.Add(new NodeConnection { OutputNode = variable, OutputSocketName = "out", InputNode = node, InputSocketName = name });
+                    }
                 }
-
+                KismetExpression en = ex;
               
                 if (Mode == GraphMode.PseudoBlueprint && ex is EX_Context)
                 {
@@ -597,6 +608,17 @@ namespace UAssetGUI
                     type.Parameters.Add(new Parameter { Name = name, Direction = Direction.None, ParameterType = typeof(Value) });
                 }
                 type.Parameters.Add(PinOutValue);
+
+                void exp(string name, KismetExpression ex)
+                {
+                    var variable = BuildExpressionNode(ex, parentIndex);
+                    if (variable == node)
+                    {
+                        throw (new InvalidOperationException());
+                    }
+                    type.Parameters.Add(new Parameter { Name = name, Direction = Direction.In, ParameterType = typeof(Value) });
+                    NodeEditor.graph.Connections.Add(new NodeConnection { OutputNode = variable, OutputSocketName = "out", InputNode = node, InputSocketName = name });
+                }
                 var en = ex;
 
                 if ( Mode == GraphMode.PseudoBlueprint && ex is EX_Context)
@@ -799,14 +821,7 @@ namespace UAssetGUI
                 }
 
 
-                type.Parameters.Add(PinOutValue);
 
-                void exp(string name, KismetExpression ex)
-                {
-                    var variable = BuildExpressionNode(ex);
-                    type.Parameters.Add(new Parameter { Name = name, Direction = Direction.In, ParameterType = typeof(Value) });
-                    NodeEditor.graph.Connections.Add(new NodeConnection { OutputNode = variable, OutputSocketName = "out", InputNode = node, InputSocketName = name });
-                }
 
                 switch (en)
                 {

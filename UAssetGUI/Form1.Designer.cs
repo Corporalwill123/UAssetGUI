@@ -47,8 +47,12 @@ namespace UAssetGUI
             this.viewToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.expandAllToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.collapseAllToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.refreshToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.recalculateNodesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.refreshToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.graphModeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.defaultToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.psuedoBlueprintToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.layoutNodesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.utilsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.importMappingsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.extractIOStoreToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -193,8 +197,10 @@ namespace UAssetGUI
             this.viewToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.expandAllToolStripMenuItem,
             this.collapseAllToolStripMenuItem,
+            this.recalculateNodesToolStripMenuItem,
             this.refreshToolStripMenuItem,
-            this.recalculateNodesToolStripMenuItem});
+            this.graphModeToolStripMenuItem,
+            this.layoutNodesToolStripMenuItem});
             this.viewToolStripMenuItem.Name = "viewToolStripMenuItem";
             this.viewToolStripMenuItem.Size = new System.Drawing.Size(44, 20);
             this.viewToolStripMenuItem.Text = "View";
@@ -215,6 +221,14 @@ namespace UAssetGUI
             this.collapseAllToolStripMenuItem.Text = "Collapse All";
             this.collapseAllToolStripMenuItem.Click += new System.EventHandler(this.collapseAllToolStripMenuItem_Click);
             // 
+            // recalculateNodesToolStripMenuItem
+            // 
+            this.recalculateNodesToolStripMenuItem.Name = "recalculateNodesToolStripMenuItem";
+            this.recalculateNodesToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Shift | System.Windows.Forms.Keys.F5)));
+            this.recalculateNodesToolStripMenuItem.Size = new System.Drawing.Size(222, 22);
+            this.recalculateNodesToolStripMenuItem.Text = "Recalculate Nodes";
+            this.recalculateNodesToolStripMenuItem.Click += new System.EventHandler(this.refreshFullToolStripMenuItem_Click);
+            // 
             // refreshToolStripMenuItem
             // 
             this.refreshToolStripMenuItem.Name = "refreshToolStripMenuItem";
@@ -223,13 +237,38 @@ namespace UAssetGUI
             this.refreshToolStripMenuItem.Text = "Refresh";
             this.refreshToolStripMenuItem.Click += new System.EventHandler(this.refreshToolStripMenuItem_Click);
             // 
-            // recalculateNodesToolStripMenuItem
+            // graphModeToolStripMenuItem
             // 
-            this.recalculateNodesToolStripMenuItem.Name = "recalculateNodesToolStripMenuItem";
-            this.recalculateNodesToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Shift | System.Windows.Forms.Keys.F5)));
-            this.recalculateNodesToolStripMenuItem.Size = new System.Drawing.Size(222, 22);
-            this.recalculateNodesToolStripMenuItem.Text = "Recalculate Nodes";
-            this.recalculateNodesToolStripMenuItem.Click += new System.EventHandler(this.refreshFullToolStripMenuItem_Click);
+            this.graphModeToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.defaultToolStripMenuItem,
+            this.psuedoBlueprintToolStripMenuItem});
+            this.graphModeToolStripMenuItem.Name = "graphModeToolStripMenuItem";
+            this.graphModeToolStripMenuItem.Size = new System.Drawing.Size(222, 22);
+            this.graphModeToolStripMenuItem.Text = "Graph Mode";
+            // 
+            // defaultToolStripMenuItem
+            // 
+            this.defaultToolStripMenuItem.Checked = true;
+            this.defaultToolStripMenuItem.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.defaultToolStripMenuItem.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
+            this.defaultToolStripMenuItem.Name = "defaultToolStripMenuItem";
+            this.defaultToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.defaultToolStripMenuItem.Text = "Default";
+            this.defaultToolStripMenuItem.Click += new System.EventHandler(this.defaultToolStripMenuItem_Click);
+            // 
+            // psuedoBlueprintToolStripMenuItem
+            // 
+            this.psuedoBlueprintToolStripMenuItem.Name = "psuedoBlueprintToolStripMenuItem";
+            this.psuedoBlueprintToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.psuedoBlueprintToolStripMenuItem.Text = "Psuedo-Blueprint";
+            this.psuedoBlueprintToolStripMenuItem.Click += new System.EventHandler(this.psuedoBlueprintToolStripMenuItem_Click);
+            // 
+            // layoutNodesToolStripMenuItem
+            // 
+            this.layoutNodesToolStripMenuItem.Name = "layoutNodesToolStripMenuItem";
+            this.layoutNodesToolStripMenuItem.Size = new System.Drawing.Size(222, 22);
+            this.layoutNodesToolStripMenuItem.Text = "Layout Nodes";
+            this.layoutNodesToolStripMenuItem.Click += new System.EventHandler(this.layoutNodesToolStripMenuItem_Click);
             // 
             // utilsToolStripMenuItem
             // 
@@ -522,6 +561,10 @@ namespace UAssetGUI
         private ToolStripMenuItem extractIOStoreToolStripMenuItem;
         private ToolStripMenuItem patchusmapWithsavVersionInfoToolStripMenuItem;
         private ToolStripMenuItem importMappingsToolStripMenuItem;
+        private ToolStripMenuItem graphModeToolStripMenuItem;
+        private ToolStripMenuItem psuedoBlueprintToolStripMenuItem;
+        private ToolStripMenuItem defaultToolStripMenuItem;
+        private ToolStripMenuItem layoutNodesToolStripMenuItem;
     }
 }
 

@@ -216,7 +216,7 @@ namespace UAssetGUI
                             }
                             string functionName = UAssetAPI.Kismet.KismetSerializer.GetName(e.StackNode.Index);
 
-                            if (functionName == "Delay"){
+                            if (functionName == "Delay" || functionName == "RetriggerableDelay"){
                                 jump("later", ((EX_SkipOffsetConst)((EX_StructConst)e.Parameters[2]).Value[0]).Value);
                             }
                             node.Name = $"{index}: CallMath - " + UAssetAPI.Kismet.KismetSerializer.GetName(e.StackNode.Index);

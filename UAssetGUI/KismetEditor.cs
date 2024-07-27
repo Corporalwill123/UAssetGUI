@@ -742,84 +742,95 @@ namespace UAssetGUI
 
         public void LayoutNodes()
         {
-            try
+            
+                
+            StringBuilder inputBuilder = new StringBuilder();
+                
+            var functionNodes = new List<int>();
+            inputBuilder.AppendLine("strict digraph {");
+            inputBuilder.AppendLine("rankdir=\"LR\"");
+            var nodeDict = NodeEditor.graph.Nodes.Select((v, i) => (v, i)).ToDictionary(p => p.v, p => p.i);
+            foreach (var entry in nodeDict)
             {
-                
-                StringBuilder inputBuilder = new StringBuilder();
-                
-                var functionNodes = new List<int>();
-                inputBuilder.AppendLine("strict digraph {");
-                inputBuilder.AppendLine("rankdir=\"LR\"");
-                var nodeDict = NodeEditor.graph.Nodes.Select((v, i) => (v, i)).ToDictionary(p => p.v, p => p.i);
-                foreach (var entry in nodeDict)
+                var inputs = String.Join(" | ", entry.Key.GetInputs().Select(p => $"<{p.Name}>{p.Name}"));
+                var outputs = String.Join(" | ", entry.Key.GetOutputs().Select(p => $"<{p.Name}>{p.Name}"));
+                inputBuilder.AppendLine($"{entry.Value} [shape=\"record\", width={entry.Key.GetNodeBounds().Width*4/NodeVisual.NodeWidth}, label=\"{{{{ {{{entry.Key.Name}}} | {{ {{ {inputs} }} | {{ {outputs} }} }} | footer }}}}\"]");
+                if (entry.Key.NodeColor == System.Drawing.Color.Salmon) // TODO possibly worst way to detect special nodes ever
                 {
-                    var inputs = String.Join(" | ", entry.Key.GetInputs().Select(p => $"<{p.Name}>{p.Name}"));
-                    var outputs = String.Join(" | ", entry.Key.GetOutputs().Select(p => $"<{p.Name}>{p.Name}"));
-                    inputBuilder.AppendLine($"{entry.Value} [shape=\"record\", width={entry.Key.GetNodeBounds().Width*4/NodeVisual.NodeWidth}, label=\"{{{{ {{{entry.Key.Name}}} | {{ {{ {inputs} }} | {{ {outputs} }} }} | footer }}}}\"]");
-                    if (entry.Key.NodeColor == System.Drawing.Color.Salmon) // TODO possibly worst way to detect special nodes ever
-                    {
-                        functionNodes.Add(entry.Value);
-                    }
+                    functionNodes.Add(entry.Value);
                 }
-                foreach (var conn in NodeEditor.graph.Connections)
+            }
+            foreach (var conn in NodeEditor.graph.Connections)
             {
                 var weight = conn.GetType() == typeof(ExecutionPath) ? 3 : 1; // can't tell if this is actually doing anything
                 if (nodeDict.ContainsKey(conn.OutputNode) & nodeDict.ContainsKey(conn.InputNode))
                 {
-                    var weight = conn.GetType() == typeof(ExecutionPath) ? 3 : 1; // can't tell if this is actually doing anything
                     inputBuilder.AppendLine($"{nodeDict[conn.OutputNode]}:{conn.OutputSocketName}:e -> {nodeDict[conn.InputNode]}:{conn.InputSocketName}:w [weight = {weight}]");
                 }
             }
-                inputBuilder.AppendLine("{");
-                inputBuilder.AppendLine("rank = \"source\";");
-                foreach (var fn in functionNodes)
-                {
-                    inputBuilder.AppendLine(fn.ToString());
-                }
-                inputBuilder.AppendLine("}");
 
-                inputBuilder.AppendLine("}");
+            inputBuilder.AppendLine("{");
+            inputBuilder.AppendLine("rank = \"source\";");
+            foreach (var fn in functionNodes)
+            {
+                inputBuilder.AppendLine(fn.ToString());
+            }
+            inputBuilder.AppendLine("}");
 
-                string inputString = inputBuilder.ToString();
+            inputBuilder.AppendLine("}");
 
-                var info = new ProcessStartInfo(@"bin\dot.exe");
-                info.Arguments = "-Tplain -y";
-                info.UseShellExecute = false;
-                info.CreateNoWindow = true;
-                info.RedirectStandardOutput = true;
-                info.RedirectStandardInput = true;
-                var p = Process.Start(info);
+            string inputString = inputBuilder.ToString();
 
-                var dot = p.StandardInput;
-
-
-                dot.Write(inputString);
-                dot.Close();
-
-                var scaleX = 50.0f;
-                var scaleY = 60.0f;
-                string line;
-                while ((line = p.StandardOutput.ReadLine()) != null)
-                {
-                    var split = line.Split(' ');
-                    switch (split[0])
-                    {
-                        case "node":
-                            var node = NodeEditor.graph.Nodes[Int32.Parse(split[1])];
-                            node.X = float.Parse(split[2], CultureInfo.InvariantCulture) * scaleX;
-                            node.Y = float.Parse(split[3], CultureInfo.InvariantCulture) * scaleY;
-                            node.LayoutEditor(NodeEditor.Zoom);
-                            break;
-                    }
-                }
-
-                p.WaitForExit();
+            
+            var info = new ProcessStartInfo(@"bin\dot.exe");
+            info.Arguments = "-Tplain -y";
+            info.UseShellExecute = false;
+            info.CreateNoWindow = true;
+            info.RedirectStandardOutput = true;
+            info.RedirectStandardInput = true;
+            Process p;
+            try
+            {
+                p = Process.Start(info);
             }
             catch (Win32Exception e)
             {
-                Console.WriteLine("Failed to find and start 'dot' (Graphviz), nodes will not be laid out");
-                Console.WriteLine(e);
+                try
+                {
+                    info.FileName = @"dot.exe";
+                    p = Process.Start(info);
+                }
+                catch (Win32Exception f)
+                {
+                    Console.WriteLine("Failed to find and start 'dot' (Graphviz), nodes will not be laid out");
+                    Console.WriteLine(f);
+                    return;
+                }
             }
+            var dot = p.StandardInput;
+
+            dot.Write(inputString);
+            dot.Close();
+
+            var scaleX = 50.0f;
+            var scaleY = 60.0f;
+            string line;
+            while ((line = p.StandardOutput.ReadLine()) != null)
+            {
+                var split = line.Split(' ');
+                switch (split[0])
+                {
+                    case "node":
+                        var node = NodeEditor.graph.Nodes[Int32.Parse(split[1])];
+                        node.X = float.Parse(split[2], CultureInfo.InvariantCulture) * scaleX;
+                        node.Y = float.Parse(split[3], CultureInfo.InvariantCulture) * scaleY;
+                        node.LayoutEditor(NodeEditor.Zoom);
+                        break;
+                }
+            }
+
+            p.WaitForExit();
+            
         }
 
         public static IEnumerable<(uint, KismetExpression)> GetOffsets(KismetExpression[] bytecode) {

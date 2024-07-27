@@ -161,7 +161,16 @@ namespace UAssetGUI
                     NodeEditor.graph.Connections.Add(new NodeConnection { OutputNode = variable, OutputSocketName = "out", InputNode = node, InputSocketName = name });
                 }
 
-                switch (ex)
+              
+                if (Mode == GraphMode.PseudoBlueprint && ex is EX_Context)
+                {
+                    exec();then();
+                    EX_Context e = ex as EX_Context;
+                    input("owner", e.ObjectExpression);
+                    en = e.ContextExpression;
+                    skipExec = true;
+                }
+                switch (en)
                 {
                     case EX_EndOfScript:
                         node.Name = $"{index}: End of Script";
@@ -587,7 +596,16 @@ namespace UAssetGUI
                 {
                     type.Parameters.Add(new Parameter { Name = name, Direction = Direction.None, ParameterType = typeof(Value) });
                 }
-                switch (ex)
+                type.Parameters.Add(PinOutValue);
+                var en = ex;
+
+                if ( Mode == GraphMode.PseudoBlueprint && ex is EX_Context)
+                {
+                    EX_Context e = ex as EX_Context;
+                    exp("owner", e.ObjectExpression);
+                    en = e.ContextExpression;
+                }
+                switch (en)
                 {
                     case EX_Self:
                         node.Name = "Self";
@@ -790,7 +808,7 @@ namespace UAssetGUI
                     NodeEditor.graph.Connections.Add(new NodeConnection { OutputNode = variable, OutputSocketName = "out", InputNode = node, InputSocketName = name });
                 }
 
-                switch (ex)
+                switch (en)
                 {
                     case EX_Self:
                     case EX_LocalVariable:

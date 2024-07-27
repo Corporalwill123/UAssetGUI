@@ -178,6 +178,14 @@ namespace UAssetGUI
                         {
                             childItem.BackColor = UAGPalette.BackColor;
                             childItem.ForeColor = UAGPalette.ForeColor;
+                            if(childItem is ToolStripMenuItem childMenuItem)
+                            {
+                                foreach(ToolStripItem  childchildItem in childMenuItem.DropDownItems)
+                                {
+                                    childchildItem.BackColor = UAGPalette.BackColor;
+                                    childchildItem.ForeColor = UAGPalette.ForeColor;
+                                }
+                            }
                         }
                     }
                 }

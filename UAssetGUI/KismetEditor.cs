@@ -304,7 +304,7 @@ namespace UAssetGUI
                     case EX_LetValueOnPersistentFrame e:
                         {
                             exec(); then();
-                            String fullName = UAssetAPI.Kismet.KismetSerializer.SerializePropertyPointer(e.DestinationProperty, new[] { "Property Name" })[0].Value.ToString();
+                            string fullName = UAssetAPI.Kismet.KismetSerializer.SerializePropertyPointer(e.DestinationProperty, new[] { "Property Name" })[0].Value.ToString();
                             node.Name = $"{index}: LetValueOnPersistentFrame - " + fullName.Substring(fullName.LastIndexOf('.') + 1);
                             input("value", e.AssignmentExpression);
                             break;
@@ -760,7 +760,7 @@ namespace UAssetGUI
                         break;
                     case EX_StructMemberContext e:
                         {
-                            String fullName = UAssetAPI.Kismet.KismetSerializer.SerializePropertyPointer(e.StructMemberExpression, new[] { "Property Name" })[0].Value.ToString();
+                            string fullName = UAssetAPI.Kismet.KismetSerializer.SerializePropertyPointer(e.StructMemberExpression, new[] { "Property Name" })[0].Value.ToString();
                             var startIndex = fullName.LastIndexOf('.') + 1;
                             fullName = fullName.Substring(startIndex);
                             var endIndex = fullName.IndexOf("_");

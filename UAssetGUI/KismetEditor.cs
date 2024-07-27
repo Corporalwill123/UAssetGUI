@@ -902,8 +902,39 @@ namespace UAssetGUI
                             int i = 1;
                             foreach (var Case in e.Cases)
                             {
-                                exp($"case_{i}_value", Case.CaseIndexValueTerm);
-                                exp($"case_{i}_result", Case.CaseTerm);
+                                if (Mode == GraphMode.PseudoBlueprint)
+                                {
+                                    switch (Case.CaseIndexValueTerm)
+                                    {
+                                        case EX_False:
+                                            label("False");
+                                            break;
+                                        case EX_True:
+                                            label("True");
+                                            break;
+                                        case EX_ByteConst val:
+                                            {
+                                                label(val.Value.ToString());
+                                                break;
+                                            }
+                                        case EX_IntConst val:
+                                           {
+                                                label(val.Value.ToString());
+                                                break;
+                                           }
+                                        case EX_Int64Const val:
+                                            {
+                                                label(val.Value.ToString());
+                                                break;
+                                            }
+                                    }
+                                    exp($"case_{i}", Case.CaseTerm);
+                                }
+                                else
+                                {
+                                    exp($"case_{i}_value", Case.CaseIndexValueTerm);
+                                    exp($"case_{i}_result", Case.CaseTerm);
+                                }
                                 i++;
                             }
                             exp("index", e.IndexTerm);

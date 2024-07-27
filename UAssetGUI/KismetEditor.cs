@@ -63,6 +63,7 @@ namespace UAssetGUI
             var offsets = GetOffsets(bytecode).ToDictionary(l => l.Item1, l => l.Item2);
             var nodeMap = new Dictionary<KismetExpression, NodeVisual>();
             var nodeList = new List<NodeVisual>();
+            var nodeOffsets = new Dictionary<NodeVisual, uint>();
 
 
             var jumpConnections = new List<JumpConnection>();
@@ -173,6 +174,7 @@ namespace UAssetGUI
                 }
                 KismetExpression en = ex;
               
+                nodeOffsets[node] = index;
                 if (Mode == GraphMode.PseudoBlueprint && ex is EX_Context)
                 {
                     exec();then();

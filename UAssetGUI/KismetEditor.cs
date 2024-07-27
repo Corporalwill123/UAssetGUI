@@ -346,6 +346,7 @@ namespace UAssetGUI
                     case EX_Return:
                         node.Name = $"{index}: Return";
                         exec();
+                        variableMap.Clear();
                         break;
                     case EX_ComputedJump e:
                         exec();
@@ -363,6 +364,7 @@ namespace UAssetGUI
                         jump("false", e.CodeOffset);
                         input("condition", e.BooleanExpression);
                         node.Name = $"{index}: Branch";
+                        variableMap.Clear();
                         break;
                     case EX_PushExecutionFlow e:
                         exec();
@@ -373,11 +375,13 @@ namespace UAssetGUI
                     case EX_PopExecutionFlow:
                         exec();
                         node.Name = $"{index}: Pop Execution";
+                        variableMap.Clear();
                         break;
                     case EX_PopExecutionFlowIfNot e:
                         exec(); then();
                         input("condition", e.BooleanExpression);
                         node.Name = $"{index}: Pop Execution If False";
+                        variableMap.Clear();
                         break;
                     case EX_LetObj e:
                         exec(); then();

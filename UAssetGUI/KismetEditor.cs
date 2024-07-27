@@ -41,7 +41,12 @@ namespace UAssetGUI
         static Parameter PinThen = new Parameter { Name = "then", Direction = Direction.Out, ParameterType = typeof(ExecutionPath) };
         static Parameter PinInValue = new Parameter { Name = "in", Direction = Direction.In, ParameterType = typeof(Value) };
         static Parameter PinOutValue = new Parameter { Name = "out", Direction = Direction.Out, ParameterType = typeof(Value) };
-
+        public enum GraphMode
+        {
+            Default = 1,
+            PseudoBlueprint = 2,
+        }
+        public static GraphMode Mode = GraphMode.Default;
         internal struct JumpConnection
         {
             internal NodeVisual OutputNode;

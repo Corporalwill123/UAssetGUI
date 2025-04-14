@@ -49,9 +49,6 @@ namespace UAssetGUI
             this.collapseAllToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.recalculateNodesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.refreshToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.graphModeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.defaultToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.psuedoBlueprintToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.layoutNodesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.utilsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.importMappingsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -199,7 +196,6 @@ namespace UAssetGUI
             this.collapseAllToolStripMenuItem,
             this.recalculateNodesToolStripMenuItem,
             this.refreshToolStripMenuItem,
-            this.graphModeToolStripMenuItem,
             this.layoutNodesToolStripMenuItem});
             this.viewToolStripMenuItem.Name = "viewToolStripMenuItem";
             this.viewToolStripMenuItem.Size = new System.Drawing.Size(44, 20);
@@ -236,32 +232,6 @@ namespace UAssetGUI
             this.refreshToolStripMenuItem.Size = new System.Drawing.Size(222, 22);
             this.refreshToolStripMenuItem.Text = "Refresh";
             this.refreshToolStripMenuItem.Click += new System.EventHandler(this.refreshToolStripMenuItem_Click);
-            // 
-            // graphModeToolStripMenuItem
-            // 
-            this.graphModeToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.defaultToolStripMenuItem,
-            this.psuedoBlueprintToolStripMenuItem});
-            this.graphModeToolStripMenuItem.Name = "graphModeToolStripMenuItem";
-            this.graphModeToolStripMenuItem.Size = new System.Drawing.Size(222, 22);
-            this.graphModeToolStripMenuItem.Text = "Graph Mode";
-            // 
-            // defaultToolStripMenuItem
-            // 
-            this.defaultToolStripMenuItem.Checked = true;
-            this.defaultToolStripMenuItem.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.defaultToolStripMenuItem.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
-            this.defaultToolStripMenuItem.Name = "defaultToolStripMenuItem";
-            this.defaultToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
-            this.defaultToolStripMenuItem.Text = "Default";
-            this.defaultToolStripMenuItem.Click += new System.EventHandler(this.defaultToolStripMenuItem_Click);
-            // 
-            // psuedoBlueprintToolStripMenuItem
-            // 
-            this.psuedoBlueprintToolStripMenuItem.Name = "psuedoBlueprintToolStripMenuItem";
-            this.psuedoBlueprintToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
-            this.psuedoBlueprintToolStripMenuItem.Text = "Psuedo-Blueprint";
-            this.psuedoBlueprintToolStripMenuItem.Click += new System.EventHandler(this.psuedoBlueprintToolStripMenuItem_Click);
             // 
             // layoutNodesToolStripMenuItem
             // 
@@ -561,9 +531,6 @@ namespace UAssetGUI
         private ToolStripMenuItem extractIOStoreToolStripMenuItem;
         private ToolStripMenuItem patchusmapWithsavVersionInfoToolStripMenuItem;
         private ToolStripMenuItem importMappingsToolStripMenuItem;
-        private ToolStripMenuItem graphModeToolStripMenuItem;
-        private ToolStripMenuItem psuedoBlueprintToolStripMenuItem;
-        private ToolStripMenuItem defaultToolStripMenuItem;
         private ToolStripMenuItem layoutNodesToolStripMenuItem;
     }
 }

@@ -1893,35 +1893,7 @@ namespace UAssetGUI
             });
         }
 
-        private void defaultToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            ToolStripMenuItem item = sender as ToolStripMenuItem;
-            item.Checked = true;
-            this.psuedoBlueprintToolStripMenuItem.Checked = false;
-            if (KismetEditor.Mode != KismetEditor.GraphMode.Default)
-            {
-                KismetEditor.Mode = KismetEditor.GraphMode.Default;
-                if (tableEditor != null)
-                {
-                    tableEditor.Save(true);
-                }
-            }
-        }
 
-        private void psuedoBlueprintToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            ToolStripMenuItem item = sender as ToolStripMenuItem;
-            item.Checked = true;
-            this.defaultToolStripMenuItem.Checked = false;
-            if (KismetEditor.Mode != KismetEditor.GraphMode.PseudoBlueprint)
-            {
-                KismetEditor.Mode = KismetEditor.GraphMode.PseudoBlueprint;
-                if (tableEditor != null)
-                {
-                    tableEditor.Save(true);
-                }
-            }
-        }
 
 
         private void layoutNodesToolStripMenuItem_Click(object sender, EventArgs e)

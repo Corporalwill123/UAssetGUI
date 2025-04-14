@@ -1,6 +1,7 @@
 using Newtonsoft.Json.Linq;
 using NodeEditor;
 using System;
+using System.IO;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -1430,34 +1431,53 @@ namespace UAssetGUI
             info.CreateNoWindow = true;
             info.RedirectStandardOutput = true;
             info.RedirectStandardInput = true;
-            Process p;
+            info.RedirectStandardError = true;
+            var scaleX = 50.0f;
+            var scaleY = 60.0f;
+            StringBuilder outputBuilder = new StringBuilder();
+            Process p = new Process();
+            p.StartInfo = info;
+            p.ErrorDataReceived += new DataReceivedEventHandler((sender, e) =>
+            {
+                if (!String.IsNullOrEmpty(e.Data)) { Console.WriteLine("GraphViz: " + e.Data); }
+            });
+            p.OutputDataReceived += new DataReceivedEventHandler((sender, e) =>
+            {
+                if (!String.IsNullOrEmpty(e.Data))
+                {
+                    outputBuilder.AppendLine(e.Data);
+                }
+            });
+
             try
             {
-                p = Process.Start(info);
+                p.Start();
             }
             catch (Win32Exception e)
             {
                 try
                 {
-                    info.FileName = @"dot.exe";
-                    p = Process.Start(info);
+                    p.StartInfo.FileName = @"dot.exe";
+                    p.Start();
                 }
                 catch (Win32Exception f)
                 {
-                    Console.WriteLine("Failed to find and start 'dot' (Graphviz), nodes will not be laid out");
                     Console.WriteLine(f);
                     return;
                 }
             }
             var dot = p.StandardInput;
+            p.BeginOutputReadLine();
+            p.BeginErrorReadLine();
 
             dot.Write(inputString);
             dot.Close();
-
-            var scaleX = 50.0f;
-            var scaleY = 60.0f;
+            p.WaitForExit();
+            p.Close();
+            var outputString = outputBuilder.ToString();
+            StringReader reader = new StringReader(outputString);
             string line;
-            while ((line = p.StandardOutput.ReadLine()) != null)
+            while ((line = reader.ReadLine()) != null)
             {
                 var split = line.Split(' ');
                 switch (split[0])
@@ -1470,9 +1490,6 @@ namespace UAssetGUI
                         break;
                 }
             }
-
-            p.WaitForExit();
-            
         }
 
         public static IEnumerable<(uint, KismetExpression)> GetOffsets(KismetExpression[] bytecode) {

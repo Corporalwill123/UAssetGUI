@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Drawing;
 using System.Globalization;
 using System.Linq;
 using System.Text;
@@ -1395,8 +1396,8 @@ namespace UAssetGUI
             {
                 var inputs = String.Join(" | ", entry.Key.GetInputs().Select(p => $"<{p.Name}>{p.Name}"));
                 var outputs = String.Join(" | ", entry.Key.GetOutputs().Select(p => $"<{p.Name}>{p.Name}"));
-                inputBuilder.AppendLine($"{entry.Value} [shape=\"record\", width={entry.Key.GetNodeBounds().Width*4/NodeVisual.NodeWidth}, label=\"{{{{ {{{entry.Key.Name}}} | {{ {{ {inputs} }} | {{ {outputs} }} }} | footer }}}}\"]");
-                if (entry.Key.NodeColor == System.Drawing.Color.Salmon) // TODO possibly worst way to detect special nodes ever
+                inputBuilder.AppendLine($"{entry.Value} [shape=\"record\", width={(entry.Key.GetNodeBounds().Width*4/NodeVisual.NodeWidth).ToString(CultureInfo.InvariantCulture)}, label=\"{{{{ {{{entry.Key.Name}}} | {{ {{ {inputs} }} | {{ {outputs} }} }} | footer }}}}\"]");
+                if (entry.Key.NodeColor == Color.Salmon) // TODO possibly worst way to detect special nodes ever
                 {
                     functionNodes.Add(entry.Value);
                 }

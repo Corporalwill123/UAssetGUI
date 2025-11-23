@@ -15,6 +15,7 @@ using UAssetAPI;
 using UAssetAPI.ExportTypes;
 using UAssetAPI.Kismet.Bytecode;
 using UAssetAPI.Kismet.Bytecode.Expressions;
+using UAssetAPI.UnrealTypes;
 
 namespace UAssetGUI
 {
@@ -39,6 +40,7 @@ namespace UAssetGUI
         }
 
         public class Value{}
+        private UAsset asset;
         static Parameter PinExecute = new Parameter { Name = "execute", Direction = Direction.In, ParameterType = typeof(ExecutionPath) };
         static Parameter PinThen = new Parameter { Name = "then", Direction = Direction.Out, ParameterType = typeof(ExecutionPath) };
         static Parameter PinInValue = new Parameter { Name = "in", Direction = Direction.In, ParameterType = typeof(Value) };
@@ -50,10 +52,73 @@ namespace UAssetGUI
             internal uint InputIndex;
         }
 
+        private void DataFromPointer(KismetPropertyPointer pointer, out int index, out string name, out string path)
+        {
+            name = string.Empty;
+            if (pointer.ShouldSerializeOld())
+            {
+                index = pointer.Old.Index;
+                FPackageIndex currentIndex = new FPackageIndex();
+                if (pointer.Old.IsExport())
+                {
+                    name = pointer.Old.ToExport(asset).ObjectName.ToString();
+                    currentIndex = pointer.Old.ToExport(asset).OuterIndex;
+                    
+                }
+                else if(pointer.Old.IsImport())
+                {
+                    name = pointer.Old.ToImport(asset).ObjectName.ToString();
+                    currentIndex = pointer.Old.ToImport(asset).OuterIndex;
+                }
+                path = name;
+                while (!currentIndex.IsNull())
+                {
+                    if (currentIndex.IsExport())
+                    {
+                        Export e = pointer.Old.ToExport(asset);
+                        path = e.ObjectName + "." + path;
+                        currentIndex = e.OuterIndex;
+                    }
+                    else if (currentIndex.IsImport())
+                    {
+                        Export e = pointer.Old.ToExport(asset);
+                        path = e.ObjectName + "." + path;
+                        currentIndex = e.OuterIndex;
+                    }
+                }
+                return;
+            }
+
+            if (pointer.ShouldSerializeNew())
+            {
+                var owner = pointer.New.ResolvedOwner;
+                path = pointer.New.Path.Select(x => x.ToString()).Aggregate((a, b) => a + "." + b);
+                if (owner.IsExport())
+                {
+                    var export = owner.ToExport(asset) as StructExport;
+                    path = export.ObjectName.ToString() + "." + path;
+                    index = export.LoadedProperties.ToList().FindIndex(x => x.Name == pointer.New.Path.Last());
+                    name = pointer.New.Path.Last().ToString();
+                    Debug.Assert(pointer.New.Path.Length == 1);
+                    return;
+                }
+                else if (owner.IsImport())
+                {
+                    path = owner.ToImport(asset).ObjectName.ToString() + "." + path;
+                    var objectName = pointer.New.Path.Last();
+                    name = objectName.ToString();
+                    index = -1-asset.Imports.FindIndex(x=>x.ObjectName==objectName && x.OuterIndex == pointer.New.ResolvedOwner);
+                    Debug.Assert(pointer.New.Path.Length == 1);
+                    return;
+                }
+            }
+            throw new InvalidOperationException();
+        }
         public void SetBytecode(UAsset asset, FunctionExport fn)
         {
             var bytecode = fn.ScriptBytecode;
 
+            this.asset = asset;
             NodeEditor.Clear();
 
             var offsets = GetOffsets(bytecode).ToDictionary(l => l.Item1, l => l.Item2);
@@ -279,8 +344,9 @@ namespace UAssetGUI
                     case EX_LetValueOnPersistentFrame e:
                         {
                             exec(); then();
-                            string fullName = UAssetAPI.Kismet.KismetSerializer.SerializePropertyPointer(e.DestinationProperty, new[] { "Property Name" })[0].Value.ToString();
-                            node.Name = $"{index}: LetValueOnPersistentFrame - " + fullName.Substring(fullName.LastIndexOf('.') + 1);
+                            DataFromPointer(e.DestinationProperty, out var propIndex, out var propName, out var path);
+                            
+                            node.Name = $"{index}: LetValueOnPersistentFrame - " + propName;
                             input("value", e.AssignmentExpression);
                             break;
                         }
@@ -371,34 +437,34 @@ namespace UAssetGUI
                         break;
                     case EX_LocalVariable e:
                         {
-                            string fullName = UAssetAPI.Kismet.KismetSerializer.SerializePropertyPointer(e.Variable, new[] { "Variable Name" })[0].Value.ToString();
+                            DataFromPointer(e.Variable, out var index, out var name, out var path);
                             node.Name = "LocalVariable";
-                            label(fullName.Substring(fullName.LastIndexOf('.') + 1));
-                            NodeEditor.AddVariable(fullName, node);
+                            label(name);
+                            NodeEditor.AddVariable(path, node);
                             break;
                         }
                     case EX_LocalOutVariable e:
                         {
-                            string fullName = UAssetAPI.Kismet.KismetSerializer.SerializePropertyPointer(e.Variable, new[] { "Variable Name" })[0].Value.ToString();
+                            DataFromPointer(e.Variable, out var index, out var name, out var path);
                             node.Name = "LocalOut";
-                            label(fullName.Substring(fullName.LastIndexOf('.') + 1));
-                            NodeEditor.AddVariable(fullName, node);
+                            label(name);
+                            NodeEditor.AddVariable(path, node);
                             break;
                         }
                     case EX_InstanceVariable e:
                         {
-                            string fullName = UAssetAPI.Kismet.KismetSerializer.SerializePropertyPointer(e.Variable, new[] { "Variable Name" })[0].Value.ToString();
+                            DataFromPointer(e.Variable, out var index, out var name, out var path);
                             node.Name = "InstanceVariable";
-                            label(fullName.Substring(fullName.LastIndexOf('.') + 1));
-                            NodeEditor.AddVariable(fullName, node);
+                            label(name);
+                            NodeEditor.AddVariable(path, node);
                             break;
                         }
                     case EX_DefaultVariable e:
                         {
-                            string fullName = UAssetAPI.Kismet.KismetSerializer.SerializePropertyPointer(e.Variable, new[] { "Variable Name" })[0].Value.ToString();
+                            DataFromPointer(e.Variable, out var index, out var name, out var path);
                             node.Name = "DefaultVariable";
-                            label(fullName.Substring(fullName.LastIndexOf('.') + 1));
-                            NodeEditor.AddVariable(fullName, node);
+                            label(name);
+                            NodeEditor.AddVariable(path, node);
                             break;
                         }
                     //case EX_ComputedJump:
@@ -519,12 +585,8 @@ namespace UAssetGUI
                         break;
                     case EX_StructMemberContext e:
                         {
-                            string fullName = UAssetAPI.Kismet.KismetSerializer.SerializePropertyPointer(e.StructMemberExpression, new[] { "Property Name" })[0].Value.ToString();
-                            var startIndex = fullName.LastIndexOf('.') + 1;
-                            fullName = fullName.Substring(startIndex);
-                            var endIndex = fullName.IndexOf("_");
-                            endIndex = endIndex == -1 ? fullName.Length : endIndex;
-                            node.Name = "Struct Member: " + fullName.Substring(0, endIndex);
+                            DataFromPointer(e.StructMemberExpression, out var index, out var name, out var path);
+                            node.Name = "Struct Member: " + name;
                             break;
                         }
                     case EX_PrimitiveCast e:

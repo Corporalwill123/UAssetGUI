@@ -75,13 +75,13 @@ namespace UAssetGUI
                 {
                     if (currentIndex.IsExport())
                     {
-                        Export e = pointer.Old.ToExport(asset);
+                        Export e = currentIndex.ToExport(asset);
                         path = e.ObjectName + "." + path;
                         currentIndex = e.OuterIndex;
                     }
                     else if (currentIndex.IsImport())
                     {
-                        Export e = pointer.Old.ToExport(asset);
+                        Import e = currentIndex.ToImport(asset);
                         path = e.ObjectName + "." + path;
                         currentIndex = e.OuterIndex;
                     }
